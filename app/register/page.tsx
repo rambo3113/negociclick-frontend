@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
@@ -70,7 +70,7 @@ const ROLE_CONFIG = {
 
 type Role = 'CLIENT' | 'VENDOR';
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const { register } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -424,5 +424,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterPageContent />
+    </Suspense>
   );
 }
