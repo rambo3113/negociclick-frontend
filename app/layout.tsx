@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import { ToastProvider } from "@/components/Toast";
+import ChatWidget from "@/components/ChatWidget";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -46,6 +47,7 @@ export default function RootLayout({
         <AuthProvider>
           <ToastProvider>
             {children}
+            <ChatWidget />
           </ToastProvider>
         </AuthProvider>
       </body>
