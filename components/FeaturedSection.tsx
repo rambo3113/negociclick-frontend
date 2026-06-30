@@ -26,13 +26,19 @@ export default function FeaturedSection({ businessId }: { businessId: string }) 
   const [paying, setPaying] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      api.get(`/businesses/${businessId}/featured/status`),
-      api.get(`/businesses/${businessId}/featured/pricing`),
-    ]).then(([s, p]) => {
-      setStatus(s.data);
-      setPricing(p.data.pricing);
-    }).finally(() => setLoading(false));
+    const load = async () => {
+      try {
+        const [s, p] = await Promise.allSettled([
+          api.get(`/businesses/${businessId}/featured/status`),
+          api.get(`/businesses/${businessId}/featured/pricing`),
+        ]);
+        if (s.status === 'fulfilled') setStatus(s.value.data);
+        if (p.status === 'fulfilled') setPricing(p.value.data.pricing ?? p.value.data);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, [businessId]);
 
   const handlePurchase = async () => {
