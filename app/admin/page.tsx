@@ -7,7 +7,7 @@ import api from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import {
   Users, Store, Calendar, CreditCard, Crown, Zap, Sparkles,
-  ShieldCheck, Loader2, Star, ChevronDown, ToggleLeft, ToggleRight,
+  ShieldCheck, Loader2, Star, ChevronDown, ToggleLeft, ToggleRight, ScrollText,
 } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -38,6 +38,10 @@ interface FeaturedPayment {
   business: { name: string };
   user: { name: string; email: string };
 }
+interface AuditLog {
+  id: string; action: string; userId: string | null; targetId: string | null;
+  meta: string | null; ip: string | null; createdAt: string;
+}
 
 // ── Constants ───────────────────────────────────────────────────────────────
 const STATUS_COLOR: Record<string, string> = {
@@ -48,7 +52,7 @@ const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Pendiente', CONFIRMED: 'Confirmada', COMPLETED: 'Completada', CANCELLED: 'Cancelada',
 };
 
-type Tab = 'overview' | 'users' | 'businesses' | 'featured';
+type Tab = 'overview' | 'users' | 'businesses' | 'featured' | 'audit';
 
 // ── Component ───────────────────────────────────────────────────────────────
 export default function AdminPage() {
@@ -61,6 +65,7 @@ export default function AdminPage() {
   const [businesses, setBusinesses]     = useState<AdminBusiness[]>([]);
   const [featuredPayments, setFeaturedPayments] = useState<FeaturedPayment[]>([]);
   const [featuredTotal, setFeaturedTotal] = useState(0);
+  const [auditLogs, setAuditLogs]       = useState<AuditLog[]>([]);
   const [loading, setLoading]           = useState(true);
   const [tab, setTab]                   = useState<Tab>('overview');
   const [roleLoading, setRoleLoading]   = useState<string | null>(null);
@@ -75,13 +80,15 @@ export default function AdminPage() {
         api.get('/admin/users'),
         api.get('/admin/businesses'),
         api.get('/admin/featured-payments'),
-      ]).then(([s, u, b, f]) => {
+        api.get('/admin/audit-logs'),
+      ]).then(([s, u, b, f, a]) => {
         setStats(s.data.stats);
         setRecentBookings(s.data.recentBookings);
         setAllUsers(u.data.users);
         setBusinesses(b.data.businesses);
         setFeaturedPayments(f.data.payments);
         setFeaturedTotal(f.data.total);
+        setAuditLogs(a.data.logs);
       }).catch(() => {}).finally(() => setLoading(false));
     }
   }, [user, authLoading, router]);
@@ -199,6 +206,7 @@ export default function AdminPage() {
               { key: 'users',      label: `Usuarios (${allUsers.length})` },
               { key: 'businesses', label: `Negocios (${businesses.length})` },
               { key: 'featured',   label: `Destacados (${featuredPayments.length})` },
+              { key: 'audit',      label: `Audit Log (${auditLogs.length})` },
             ] as { key: Tab; label: string }[]).map(t => (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={`px-5 py-4 text-sm font-semibold whitespace-nowrap transition-colors ${
@@ -413,6 +421,56 @@ export default function AdminPage() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* Audit Log */}
+          {tab === 'audit' && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-gray-400 uppercase tracking-wide border-b border-gray-50">
+                    <th className="px-6 py-4">Acción</th>
+                    <th className="px-6 py-4">Usuario ID</th>
+                    <th className="px-6 py-4">Target ID</th>
+                    <th className="px-6 py-4">IP</th>
+                    <th className="px-6 py-4">Detalles</th>
+                    <th className="px-6 py-4">Fecha</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {auditLogs.map(log => (
+                    <tr key={log.id} className="hover:bg-gray-50/50">
+                      <td className="px-6 py-3">
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                          log.action === 'LOGIN'            ? 'bg-green-100 text-green-700' :
+                          log.action === 'LOGOUT'           ? 'bg-gray-100 text-gray-600' :
+                          log.action === 'REGISTER'         ? 'bg-blue-100 text-blue-700' :
+                          log.action === 'ROLE_CHANGE'      ? 'bg-red-100 text-red-700' :
+                          log.action === 'FEATURED_PURCHASE'? 'bg-amber-100 text-amber-700' :
+                          log.action === 'BUSINESS_TOGGLE'  ? 'bg-purple-100 text-purple-700' :
+                                                              'bg-gray-100 text-gray-600'
+                        }`}>{log.action}</span>
+                      </td>
+                      <td className="px-6 py-3 text-gray-400 text-xs font-mono">{log.userId?.slice(0, 8) ?? '—'}</td>
+                      <td className="px-6 py-3 text-gray-400 text-xs font-mono">{log.targetId?.slice(0, 8) ?? '—'}</td>
+                      <td className="px-6 py-3 text-gray-400 text-xs">{log.ip ?? '—'}</td>
+                      <td className="px-6 py-3 text-gray-400 text-xs max-w-xs truncate">
+                        {log.meta ? JSON.stringify(JSON.parse(log.meta)) : '—'}
+                      </td>
+                      <td className="px-6 py-3 text-gray-400 text-xs">
+                        {new Date(log.createdAt).toLocaleString('es-PE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                    </tr>
+                  ))}
+                  {auditLogs.length === 0 && (
+                    <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400 text-sm">
+                      <ScrollText className="w-8 h-8 mx-auto mb-2 text-gray-200" />
+                      Aún no hay registros de auditoría
+                    </td></tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
