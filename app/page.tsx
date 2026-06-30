@@ -19,6 +19,7 @@ interface Business {
   description?: string;
   minPrice?: number | null;
   coverImage?: string | null;
+  featured?: boolean;
 }
 
 const CATEGORY_META: Record<string, { label: string; emoji: string; gradient: string }> = {
@@ -597,7 +598,7 @@ export default function HomePage() {
                 const meta = CATEGORY_META[business.category] ?? CATEGORY_META.OTRO;
                 return (
                   <Link key={business.id} href={`/businesses/${business.id}`} className="group card-animate">
-                    <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-100 hover:-translate-y-1.5 transition-all duration-300">
+                    <div className={`bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 ${business.featured ? 'border-amber-300 shadow-amber-100 hover:shadow-amber-200' : 'border-gray-100 hover:shadow-indigo-100'}`}>
                       {/* Cover */}
                       <div className={`h-44 relative flex items-center justify-center overflow-hidden ${!business.coverImage ? `bg-gradient-to-br ${meta.gradient}` : 'bg-gray-100'}`}>
                         {business.coverImage ? (
@@ -618,10 +619,15 @@ export default function HomePage() {
                             {business.averageRating}
                           </div>
                         )}
-                        <div className="absolute bottom-3 left-3">
+                        <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
                           <span className="text-[11px] font-semibold bg-black/30 backdrop-blur-sm text-white px-2.5 py-1 rounded-full">
                             {meta.label}
                           </span>
+                          {business.featured && (
+                            <span className="text-[11px] font-bold bg-amber-400 text-white px-2.5 py-1 rounded-full flex items-center gap-1">
+                              ⭐ Destacado
+                            </span>
+                          )}
                         </div>
                         {business.minPrice != null && (
                           <div className="absolute bottom-3 right-3">

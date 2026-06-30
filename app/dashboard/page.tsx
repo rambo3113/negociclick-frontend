@@ -15,6 +15,7 @@ import {
   BadgeCheck, Camera, Eye,
 } from 'lucide-react';
 import { useToast } from '@/components/Toast';
+import FeaturedSection from '@/components/FeaturedSection';
 
 interface Subscription { plan: string; commissionRate: number; endDate?: string | null; }
 
@@ -1586,6 +1587,9 @@ export default function DashboardPage() {
                   <div className="w-full border-2 border-dashed border-gray-100 rounded-xl p-4 text-center">
                     <p className="text-sm text-gray-400">Solo puedes tener 1 negocio por cuenta.</p>
                   </div>
+                  {businesses.length > 0 && (
+                    <FeaturedSection businessId={businesses[0].id} />
+                  )}
                 </div>
               )}
 
