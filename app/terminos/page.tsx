@@ -107,7 +107,7 @@ export default function TerminosPage() {
 
           {/* Contacto */}
           <a
-            href="mailto:negociclick2026@gmail.com"
+            href="mailto:noreply@negociclick.com"
             className="group flex items-start gap-4 bg-indigo-50 border border-indigo-100 rounded-2xl p-6 hover:bg-indigo-100 hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
             <span className="text-xs font-black text-indigo-300 group-hover:text-indigo-500 transition-colors mt-0.5 flex-shrink-0 w-6">10</span>
@@ -115,7 +115,7 @@ export default function TerminosPage() {
               <h2 className="text-sm font-bold text-indigo-900 mb-1 group-hover:text-indigo-700 transition-colors">Contacto</h2>
               <p className="text-sm text-indigo-600 leading-relaxed">
                 Para consultas sobre estos términos, escríbenos a{' '}
-                <span className="font-semibold underline underline-offset-2">negociclick2026@gmail.com</span>
+                <span className="font-semibold underline underline-offset-2">noreply@negociclick.com</span>
               </p>
             </div>
           </a>

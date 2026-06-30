@@ -46,7 +46,7 @@ export default function DevolucionesPage() {
               content: `Para solicitar un reembolso, el cliente debe:`,
               items: [
                 'Cancelar la reserva desde la sección "Mis reservas" en la plataforma.',
-                'En caso de inconvenientes, contactar a NegociClick en negociclick2026@gmail.com indicando el número de reserva.',
+                'En caso de inconvenientes, contactar a NegociClick en noreply@negociclick.com indicando el número de reserva.',
                 'El reembolso será procesado al mismo método de pago utilizado en la reserva original.',
                 'El tiempo de acreditación es de 5 a 10 días hábiles según la entidad bancaria.',
               ],
@@ -78,7 +78,7 @@ export default function DevolucionesPage() {
               title: '7. Contacto para devoluciones',
               content: `Para cualquier consulta sobre devoluciones o cancelaciones, contáctanos en:`,
               items: [
-                'Email: negociclick2026@gmail.com',
+                'Email: noreply@negociclick.com',
                 'Asunto del correo: "Solicitud de reembolso — [número de reserva]"',
                 'También puedes presentar un reclamo formal a través de nuestro Libro de Reclamaciones.',
               ],

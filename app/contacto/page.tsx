@@ -32,8 +32,8 @@ export default function ContactoPage() {
               {
                 Icon: Mail,
                 title: 'Correo electrónico',
-                value: 'negociclick2026@gmail.com',
-                href: 'mailto:negociclick2026@gmail.com',
+                value: 'noreply@negociclick.com',
+                href: 'mailto:noreply@negociclick.com',
                 color: 'bg-indigo-100 text-indigo-600',
               },
               {

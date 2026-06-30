@@ -101,7 +101,7 @@ export default function SoportePage() {
           </a>
 
           <a
-            href="mailto:negociclick2026@gmail.com?subject=Consulta%20NegociClick"
+            href="mailto:noreply@negociclick.com?subject=Consulta%20NegociClick"
             className="flex items-center gap-4 bg-indigo-50 border border-indigo-200 rounded-2xl p-5 hover:bg-indigo-100 transition group"
           >
             <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
@@ -111,7 +111,7 @@ export default function SoportePage() {
             </div>
             <div>
               <p className="font-bold text-indigo-800 text-sm">Correo electrónico</p>
-              <p className="text-indigo-600 text-xs mt-0.5">negociclick2026@gmail.com</p>
+              <p className="text-indigo-600 text-xs mt-0.5">noreply@negociclick.com</p>
               <p className="text-indigo-400 text-xs">Respuesta en menos de 24 h</p>
             </div>
           </a>
