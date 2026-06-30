@@ -33,7 +33,11 @@ export default function FeaturedSection({ businessId }: { businessId: string }) 
           api.get(`/businesses/${businessId}/featured/pricing`),
         ]);
         if (s.status === 'fulfilled') setStatus(s.value.data);
-        if (p.status === 'fulfilled') setPricing(p.value.data.pricing ?? p.value.data);
+        else console.error('[FeaturedSection] status error:', s.reason);
+        if (p.status === 'fulfilled') {
+          console.log('[FeaturedSection] pricing response:', p.value.data);
+          setPricing(p.value.data.pricing ?? p.value.data);
+        } else console.error('[FeaturedSection] pricing error:', p.reason);
       } finally {
         setLoading(false);
       }
