@@ -39,15 +39,15 @@ export default function ContactoPage() {
               {
                 Icon: MessageCircle,
                 title: 'WhatsApp',
-                value: '+51 999 999 999',
-                href: 'https://wa.me/51999999999',
+                value: '+51 983 081 196',
+                href: 'https://wa.me/51983081196',
                 color: 'bg-green-100 text-green-600',
               },
               {
                 Icon: Phone,
                 title: 'Teléfono',
-                value: '+51 999 999 999',
-                href: 'tel:+51999999999',
+                value: '+51 983 081 196',
+                href: 'tel:+51983081196',
                 color: 'bg-blue-100 text-blue-600',
               },
               {
