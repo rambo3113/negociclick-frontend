@@ -51,10 +51,11 @@ interface Business {
   totalReviews: number;
   services: Service[];
   reviews: Review[];
-  owner: { name: string; email: string; avatar?: string | null };
+  owner: { id: string; name: string; email: string; avatar?: string | null };
   ownerPlan?: string;
   slogan?: string;
   coverImage?: string;
+  featured?: boolean;
 }
 
 interface BusinessHour {
@@ -399,9 +400,43 @@ export default function BusinessDetailPage() {
   const todayStatus = getTodayStatus(hours);
   const isBusinessVerified = !!(business.coverImage && business.description && photos.length >= 1);
 
+  const isOwner = user && business.owner && user.id === business.owner.id;
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
+
+      {/* ── BANNER DUEÑO: Destacar negocio ── */}
+      {isOwner && !business.featured && (
+        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border-b border-amber-200">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xl">⚡</span>
+              <div>
+                <p className="text-sm font-semibold text-amber-900">Este es tu negocio</p>
+                <p className="text-xs text-amber-700">Destácalo para aparecer primero y atraer más clientes — desde S/ 9.90</p>
+              </div>
+            </div>
+            <Link
+              href="/dashboard"
+              className="flex-shrink-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:from-amber-600 hover:to-orange-600 transition"
+            >
+              Destacar mi negocio →
+            </Link>
+          </div>
+        </div>
+      )}
+      {isOwner && business.featured && (
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-200">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-2.5">
+            <span className="text-xl">✅</span>
+            <p className="text-sm text-indigo-800">
+              <strong>Tu negocio está Destacado</strong> — aparece primero en los resultados.{' '}
+              <Link href="/dashboard" className="underline hover:text-indigo-600">Gestionar desde el dashboard</Link>
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ── HERO ── */}
       <div className={`relative overflow-hidden min-h-[280px] ${carouselSlides.length > 0 ? '' : `bg-gradient-to-br ${meta.gradient}`}`}>

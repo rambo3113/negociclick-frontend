@@ -3,7 +3,16 @@ import { MetadataRoute } from 'next';
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://negociclick.pe';
 
-export const revalidate = 3600; // regenerar cada hora
+const CATEGORY_SLUGS = [
+  'barberia-lima', 'spa-lima', 'salon-belleza-lima', 'dentista-lima',
+  'veterinaria-lima', 'gimnasio-lima', 'psicologo-lima', 'nutricionista-lima',
+  'tatuajes-lima', 'fisioterapia-lima', 'micropigmentacion-lima', 'maquillaje-lima',
+  'depilacion-lima', 'masajes-domicilio-lima', 'nail-art-lima', 'peluqueria-canina-lima',
+  'electricista-lima', 'gasfitero-lima', 'jardineria-lima', 'limpieza-hogar-lima',
+  'reposteria-lima', 'catering-lima', 'clases-particulares-lima',
+];
+
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -19,6 +28,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/devoluciones`,    lastModified: new Date(), changeFrequency: 'yearly',   priority: 0.3 },
     { url: `${BASE}/reclamos`,        lastModified: new Date(), changeFrequency: 'yearly',   priority: 0.3 },
   ];
+
+  // Landing pages por categoría
+  const categoryRoutes: MetadataRoute.Sitemap = CATEGORY_SLUGS.map(slug => ({
+    url: `${BASE}/servicios/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.9,
+  }));
 
   try {
     // Fetch all active businesses for dynamic routes
@@ -45,8 +62,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       page++;
     }
 
-    return [...staticRoutes, ...businessUrls];
+    return [...staticRoutes, ...categoryRoutes, ...businessUrls];
   } catch {
-    return staticRoutes;
+    return [...staticRoutes, ...categoryRoutes];
   }
 }
