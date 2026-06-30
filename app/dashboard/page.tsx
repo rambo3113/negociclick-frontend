@@ -43,7 +43,17 @@ interface BusinessHour {
 
 interface Photo { id: string; url: string; caption?: string | null; order: number; }
 
-type Tab = 'Reservas' | 'Negocios' | 'Servicios' | 'Horarios' | 'Fotos' | 'Perfil' | 'Ingresos' | 'Agenda';
+type Tab = 'Reservas' | 'Negocios' | 'Servicios' | 'Horarios' | 'Fotos' | 'Perfil' | 'Ingresos' | 'Agenda' | 'Analíticas';
+
+interface BusinessAnalytics {
+  views: number;
+  bookingsLast30: number;
+  bookingsLast7: number;
+  bookingsByStatus: Record<string, number>;
+  recentReviews: Array<{ rating: number; comment?: string; createdAt: string; client: { name: string } }>;
+  topServices: Array<{ name: string; count: number }>;
+  revenueLastMonth: number;
+}
 
 interface AvailabilityBlock { id: string; startDate: string; endDate: string; reason?: string | null; }
 type EarningsPeriod = 'week' | 'month' | 'year' | 'all';
@@ -494,6 +504,18 @@ export default function DashboardPage() {
   const [earningsPeriod, setEarningsPeriod] = useState<EarningsPeriod>('month');
   const [earningsLoading, setEarningsLoading] = useState(false);
 
+  // Analíticas
+  const [analyticsData, setAnalyticsData] = useState<BusinessAnalytics | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+
+  const loadAnalytics = useCallback((bizId: string) => {
+    setAnalyticsLoading(true);
+    api.get(`/businesses/${bizId}/analytics`)
+      .then(res => setAnalyticsData(res.data.analytics))
+      .catch(() => setAnalyticsData(null))
+      .finally(() => setAnalyticsLoading(false));
+  }, []);
+
   // Agenda / bloqueo de disponibilidad
   const [availBlocks, setAvailBlocks] = useState<AvailabilityBlock[]>([]);
   const [availLoading, setAvailLoading] = useState(false);
@@ -770,6 +792,10 @@ export default function DashboardPage() {
   useEffect(() => {
     if (tab === 'Ingresos' && selectedBizId) loadEarnings(selectedBizId, earningsPeriod);
   }, [tab, selectedBizId, earningsPeriod, loadEarnings]);
+
+  useEffect(() => {
+    if (tab === 'Analíticas' && selectedBizId) loadAnalytics(selectedBizId);
+  }, [tab, selectedBizId, loadAnalytics]);
 
   const loadAvailBlocks = useCallback((bizId: string) => {
     setAvailLoading(true);
@@ -1094,7 +1120,7 @@ export default function DashboardPage() {
             {/* Tabs */}
             <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
               <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide">
-                {(['Reservas', 'Ingresos', 'Agenda', 'Negocios', 'Servicios', 'Horarios', 'Fotos', 'Perfil'] as Tab[]).map(t => (
+                {(['Reservas', 'Ingresos', 'Analíticas', 'Agenda', 'Negocios', 'Servicios', 'Horarios', 'Fotos', 'Perfil'] as Tab[]).map(t => (
                   <button
                     key={t}
                     onClick={() => setTab(t)}
@@ -1107,8 +1133,9 @@ export default function DashboardPage() {
                     {t === 'Horarios' && <Clock3     className="w-3.5 h-3.5" />}
                     {t === 'Fotos'    && <Image     className="w-3.5 h-3.5" />}
                     {t === 'Perfil'   && <Pencil    className="w-3.5 h-3.5" />}
-                    {t === 'Ingresos' && <Banknote  className="w-3.5 h-3.5" />}
-                    {t === 'Agenda'   && <CalendarOff className="w-3.5 h-3.5" />}
+                    {t === 'Ingresos'   && <Banknote    className="w-3.5 h-3.5" />}
+                    {t === 'Analíticas' && <BarChart2  className="w-3.5 h-3.5" />}
+                    {t === 'Agenda'     && <CalendarOff className="w-3.5 h-3.5" />}
                     {t === 'Reservas' ? catConfig.termPlural : t}
                     {t === 'Reservas' && bookings.length > 0 && (
                       <span className={`text-xs px-1.5 py-0.5 rounded-full ${tab === t ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'}`}>
@@ -1439,6 +1466,122 @@ export default function DashboardPage() {
                               ))}
                             </tbody>
                           </table>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB: ANALÍTICAS ── */}
+              {tab === 'Analíticas' && (
+                <div className="p-6 space-y-6">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Analíticas de tu negocio</h3>
+                    <p className="text-sm text-gray-500">Visitas al perfil, reservas recientes y servicios más populares.</p>
+                  </div>
+
+                  {analyticsLoading ? (
+                    <div className="py-16 flex justify-center">
+                      <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  ) : !analyticsData ? (
+                    <div className="py-12 text-center text-gray-400 text-sm">No se pudieron cargar las analíticas.</div>
+                  ) : (
+                    <>
+                      {/* KPI cards */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        {[
+                          { label: 'Visitas al perfil', value: analyticsData.views.toLocaleString('es-PE'),        icon: Eye,        color: 'bg-blue-50 text-blue-600' },
+                          { label: 'Reservas (30 días)', value: analyticsData.bookingsLast30,                       icon: Calendar,   color: 'bg-indigo-50 text-indigo-600' },
+                          { label: 'Reservas (7 días)',  value: analyticsData.bookingsLast7,                        icon: TrendingUp, color: 'bg-purple-50 text-purple-600' },
+                          { label: 'Ingresos (mes)',     value: `S/ ${analyticsData.revenueLastMonth.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`, icon: Banknote, color: 'bg-green-50 text-green-600' },
+                        ].map(({ label, value, icon: Icon, color }) => (
+                          <div key={label} className="bg-white border border-gray-200 rounded-xl p-4 flex items-start gap-3">
+                            <div className={`p-2 rounded-lg ${color}`}><Icon className="w-4 h-4" /></div>
+                            <div>
+                              <p className="text-xs text-gray-500">{label}</p>
+                              <p className="text-lg font-bold text-gray-900">{value}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="grid lg:grid-cols-2 gap-5">
+                        {/* Estado de reservas */}
+                        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+                          <h4 className="font-semibold text-gray-800 text-sm">Reservas por estado (total)</h4>
+                          {Object.entries(analyticsData.bookingsByStatus).length === 0 ? (
+                            <p className="text-sm text-gray-400">Sin reservas aún.</p>
+                          ) : (
+                            <div className="space-y-2">
+                              {Object.entries(analyticsData.bookingsByStatus).map(([status, count]) => {
+                                const total = Object.values(analyticsData.bookingsByStatus).reduce((s, n) => s + n, 0);
+                                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                                const colors: Record<string, string> = { PENDING: 'bg-yellow-400', CONFIRMED: 'bg-blue-500', COMPLETED: 'bg-green-500', CANCELLED: 'bg-red-400' };
+                                const labels: Record<string, string> = { PENDING: 'Pendientes', CONFIRMED: 'Confirmadas', COMPLETED: 'Completadas', CANCELLED: 'Canceladas' };
+                                return (
+                                  <div key={status} className="space-y-1">
+                                    <div className="flex justify-between text-xs text-gray-600">
+                                      <span>{labels[status] ?? status}</span>
+                                      <span className="font-medium">{count} ({pct}%)</span>
+                                    </div>
+                                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                      <div className={`h-full rounded-full ${colors[status] ?? 'bg-gray-400'}`} style={{ width: `${pct}%` }} />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Servicios más solicitados */}
+                        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+                          <h4 className="font-semibold text-gray-800 text-sm">Servicios más solicitados</h4>
+                          {analyticsData.topServices.length === 0 ? (
+                            <p className="text-sm text-gray-400">Sin datos aún.</p>
+                          ) : (
+                            <div className="space-y-2">
+                              {analyticsData.topServices.map((svc, i) => (
+                                <div key={i} className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-5 h-5 flex items-center justify-center text-xs font-bold text-gray-400">#{i + 1}</span>
+                                    <span className="text-sm text-gray-800">{svc.name}</span>
+                                  </div>
+                                  <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{svc.count} reservas</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Reseñas recientes */}
+                      {analyticsData.recentReviews.length > 0 && (
+                        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+                          <h4 className="font-semibold text-gray-800 text-sm">Últimas reseñas</h4>
+                          <div className="space-y-3">
+                            {analyticsData.recentReviews.map((r, i) => (
+                              <div key={i} className="flex gap-3 pb-3 border-b border-gray-100 last:border-0">
+                                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm flex-shrink-0">
+                                  {r.client.name[0]?.toUpperCase()}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-gray-900">{r.client.name}</span>
+                                    <div className="flex">
+                                      {Array.from({ length: 5 }).map((_, si) => (
+                                        <Star key={si} className={`w-3 h-3 ${si < r.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} />
+                                      ))}
+                                    </div>
+                                  </div>
+                                  {r.comment && <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{r.comment}</p>}
+                                  <p className="text-xs text-gray-400 mt-1">{new Date(r.createdAt).toLocaleDateString('es-PE')}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </>

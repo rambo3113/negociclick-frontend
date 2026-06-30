@@ -243,6 +243,8 @@ export default function BusinessDetailPage() {
       setHours(hoursRes.data.hours ?? []);
       setPhotos(photosRes.data.photos ?? []);
       setAvailBlocks(availRes.data.blocks ?? []);
+      // Registrar vista (fire-and-forget)
+      api.post(`/businesses/${id}/view`).catch(() => {});
     }).catch(() => {})
     .finally(() => setLoading(false));
   }, [id]);
