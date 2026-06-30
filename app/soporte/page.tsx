@@ -5,6 +5,7 @@ import Logo from '@/components/Logo';
 export const metadata: Metadata = {
   title: 'Soporte · NegociClick',
   description: 'Centro de ayuda de NegociClick. Preguntas frecuentes, contacto por WhatsApp y correo.',
+  keywords: ['soporte NegociClick', 'ayuda reservas Lima', 'preguntas frecuentes NegociClick', 'contacto NegociClick'],
 };
 
 const FAQS_CLIENTES = [

@@ -5,6 +5,7 @@ import Logo from '@/components/Logo';
 export const metadata: Metadata = {
   title: 'Sobre Nosotros · NegociClick',
   description: 'Conoce el equipo y la misión detrás de NegociClick, el marketplace de servicios #1 en Lima, Perú.',
+  keywords: ['NegociClick', 'marketplace Lima', 'reservas servicios Lima', 'emprendedores Lima', 'servicios profesionales Perú'],
 };
 
 const VALUES = [

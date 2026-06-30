@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 export const metadata: Metadata = {
   title: 'Política de devoluciones',
   description: 'Conoce nuestra política de cancelaciones, reembolsos y devoluciones en NegociClick.',
+  keywords: ['devoluciones NegociClick', 'reembolsos servicios Lima', 'política devoluciones marketplace Perú'],
 };
 
 export default function DevolucionesPage() {

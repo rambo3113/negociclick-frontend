@@ -5,6 +5,7 @@ import Logo from '@/components/Logo';
 export const metadata: Metadata = {
   title: 'Política de Privacidad · NegociClick',
   description: 'Política de privacidad y tratamiento de datos personales de NegociClick.',
+  keywords: ['política privacidad NegociClick', 'protección datos Lima', 'privacidad marketplace Perú'],
 };
 
 const SECTIONS = [

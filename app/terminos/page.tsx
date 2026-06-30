@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 export const metadata: Metadata = {
   title: 'Términos y Condiciones · NegociClick',
   description: 'Términos y condiciones de uso de la plataforma NegociClick.',
+  keywords: ['términos y condiciones NegociClick', 'condiciones uso marketplace Lima', 'NegociClick legal'],
 };
 
 const SECTIONS = [
