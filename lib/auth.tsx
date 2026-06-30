@@ -54,16 +54,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const res = await api.post('/auth/login', { email, password });
-    const { token: t, user: u } = res.data;
-    Cookies.set('token', t, { expires: 7 });
+    const { token: t, refreshToken: rt, user: u } = res.data;
+    Cookies.set('token', t, { expires: 1 / 96, secure: true, sameSite: 'Strict' }); // 15min
+    Cookies.set('refreshToken', rt, { expires: 7, secure: true, sameSite: 'Strict' });
     setToken(t);
     setUser(u);
   };
 
   const register = async (data: RegisterData) => {
     const res = await api.post('/auth/register', data);
-    const { token: t, user: u } = res.data;
-    Cookies.set('token', t, { expires: 7 });
+    const { token: t, refreshToken: rt, user: u } = res.data;
+    Cookies.set('token', t, { expires: 1 / 96, secure: true, sameSite: 'Strict' }); // 15min
+    Cookies.set('refreshToken', rt, { expires: 7, secure: true, sameSite: 'Strict' });
     setToken(t);
     setUser(u);
   };
@@ -76,7 +78,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
+    const rt = Cookies.get('refreshToken');
+    if (rt) api.post('/auth/logout', { refreshToken: rt }).catch(() => {});
     Cookies.remove('token');
+    Cookies.remove('refreshToken');
     setToken(null);
     setUser(null);
     setLoading(false);
