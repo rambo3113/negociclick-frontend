@@ -20,6 +20,7 @@ interface Business {
   minPrice?: number | null;
   coverImage?: string | null;
   featured?: boolean;
+  services?: { id: string }[];
 }
 
 const CATEGORY_META: Record<string, { label: string; emoji: string; gradient: string }> = {
@@ -667,15 +668,17 @@ export default function HomePage() {
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-bold text-gray-900">
-                {search
-                  ? `Resultados para "${search}"`
-                  : category === 'TODOS' ? 'Todos los negocios' : CATEGORY_META[category]?.label}
-                <span className="text-sm font-normal text-gray-400 ml-2">· {total} disponibles</span>
-              </h2>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-black text-gray-900">
+                  {search
+                    ? `Resultados para "${search}"`
+                    : category === 'TODOS' ? '¿Qué necesitas hoy?' : CATEGORY_META[category]?.label}
+                </h2>
+                <p className="text-sm text-gray-400">{total} negocios verificados disponibles</p>
+              </div>
               {(search || category !== 'TODOS' || city !== 'TODAS' || hasActiveFilters) && (
-                <button onClick={clearAll} className="text-xs text-indigo-600 font-semibold hover:underline">
+                <button onClick={clearAll} className="text-xs text-indigo-600 font-semibold hover:underline flex-shrink-0">
                   Limpiar filtros
                 </button>
               )}
@@ -703,11 +706,11 @@ export default function HomePage() {
                 const meta = CATEGORY_META[business.category] ?? CATEGORY_META.OTRO;
                 return (
                   <Link key={business.id} href={`/businesses/${business.id}`} className="group card-animate">
-                    <div className={`bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 ${business.featured ? 'border-amber-300 shadow-amber-100 hover:shadow-amber-200' : 'border-gray-100 hover:shadow-indigo-100'}`}>
+                    <div className={`bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 ${business.featured ? 'border-amber-300 shadow-amber-100 hover:shadow-amber-200/60' : 'border-gray-100 hover:shadow-indigo-100/80'}`}>
                       {/* Cover */}
                       <div className={`h-44 relative flex items-center justify-center overflow-hidden ${!business.coverImage ? `bg-gradient-to-br ${meta.gradient}` : 'bg-gray-100'}`}>
                         {business.coverImage ? (
-                          <img src={resolveUrl(business.coverImage)} alt={business.name} className="absolute inset-0 w-full h-full object-cover object-center" />
+                          <img src={resolveUrl(business.coverImage)} alt={business.name} className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110" />
                         ) : (
                           <>
                             <span className="absolute text-white/10 text-[10rem] font-black select-none leading-none">{meta.emoji}</span>
@@ -718,6 +721,12 @@ export default function HomePage() {
                             </div>
                           </>
                         )}
+                        {/* Hover overlay with CTA */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/80 via-indigo-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+                          <span className="bg-white text-indigo-700 text-xs font-black px-4 py-2 rounded-xl shadow-lg translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                            Ver disponibilidad →
+                          </span>
+                        </div>
                         {business.averageRating && (
                           <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/30 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full">
                             <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
@@ -774,9 +783,10 @@ export default function HomePage() {
                           <p className="text-sm text-gray-400 line-clamp-2 mb-3 leading-relaxed">{business.description}</p>
                         )}
 
-                        <div className="flex items-center justify-end pt-3 border-t border-gray-50">
-                          <span className="flex items-center gap-1 text-xs font-bold text-indigo-600 group-hover:gap-2 transition-all">
-                            Ver servicios <ArrowRight className="w-3.5 h-3.5" />
+                        <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                          {(() => { const n = business.services?.length ?? 0; return n > 0 ? <span className="text-xs text-gray-400">{n} servicio{n !== 1 ? 's' : ''}</span> : null; })()}
+                          <span className="ml-auto flex items-center gap-1 text-xs font-bold text-indigo-600 group-hover:gap-2 transition-all">
+                            Ver disponibilidad <ArrowRight className="w-3.5 h-3.5" />
                           </span>
                         </div>
                       </div>
@@ -826,24 +836,25 @@ export default function HomePage() {
       {/* ── CÓMO FUNCIONA ── */}
       <section className="bg-white border-t border-gray-100 py-20">
         <div className="max-w-5xl mx-auto px-4 text-center">
-          <span className="inline-block text-xs font-bold text-indigo-600 bg-indigo-50 px-4 py-1.5 rounded-full mb-4 tracking-widest uppercase">¿Cómo funciona?</span>
-          <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Reserva en 3 pasos</h2>
-          <p className="text-gray-400 mb-14 max-w-md mx-auto text-sm">Simple, rápido y sin complicaciones.</p>
+          <span className="inline-block text-xs font-bold text-indigo-600 bg-indigo-50 px-4 py-1.5 rounded-full mb-4 tracking-widest uppercase">Así de fácil</span>
+          <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Tu cita en menos de 2 minutos</h2>
+          <p className="text-gray-400 mb-14 max-w-md mx-auto text-sm">Sin llamadas, sin esperas, sin complicaciones. Solo haz clic y listo.</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
             {[
-              { step: '01', emoji: '🔍', title: 'Busca', desc: 'Encuentra el servicio que necesitas entre más de 27 categorías disponibles en Lima.' },
-              { step: '02', emoji: '📅', title: 'Reserva', desc: 'Elige el horario que te convenga y confirma tu cita en menos de 60 segundos.' },
-              { step: '03', emoji: '✨', title: 'Disfruta', desc: 'Recibe el servicio y deja tu reseña para ayudar a otros a elegir mejor.' },
+              { step: '01', emoji: '🔍', title: 'Elige el servicio', desc: 'Busca entre cientos de negocios verificados en Lima. Filtra por precio, categoría o distancia.', time: '30 seg' },
+              { step: '02', emoji: '📅', title: 'Elige tu horario', desc: 'Ve la disponibilidad en tiempo real y reserva el horario que más te convenga sin llamar.', time: '60 seg' },
+              { step: '03', emoji: '✅', title: 'Listo, confirmado', desc: 'Recibe la confirmación al instante. El negocio te espera y tú solo tienes que llegar.', time: '3 seg' },
             ].map(s => (
-              <div key={s.step} className="flex flex-col items-center">
+              <div key={s.step} className="flex flex-col items-center group">
                 <div className="relative mb-5">
-                  <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl flex items-center justify-center text-4xl shadow-xl shadow-indigo-200">
+                  <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl flex items-center justify-center text-4xl shadow-xl shadow-indigo-200 group-hover:shadow-indigo-300 group-hover:scale-105 transition-all duration-300">
                     {s.emoji}
                   </div>
                   <span className="absolute -top-2 -right-2 w-7 h-7 bg-white border-2 border-indigo-100 rounded-full flex items-center justify-center text-[10px] font-black text-indigo-600 shadow-sm">{s.step}</span>
                 </div>
                 <h3 className="font-black text-gray-900 text-xl mb-2">{s.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed max-w-xs">{s.desc}</p>
+                <p className="text-gray-400 text-sm leading-relaxed max-w-xs mb-3">{s.desc}</p>
+                <span className="text-[11px] font-bold text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full">{s.time}</span>
               </div>
             ))}
           </div>
@@ -855,33 +866,35 @@ export default function HomePage() {
         <div className="absolute -top-32 right-0 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 left-0 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
         <div className="relative max-w-3xl mx-auto px-4 text-center">
-          <span className="text-5xl block mb-5">🚀</span>
+          <span className="inline-block text-xs font-bold bg-white/10 text-white/70 px-4 py-1.5 rounded-full mb-5 tracking-widest uppercase border border-white/20">Para negocios</span>
           <h2 className="text-3xl sm:text-4xl font-black text-white mb-4 leading-tight">
-            ¿Tienes un negocio?<br />
-            <span className="bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">Únete gratis hoy</span>
+            Deja de perder clientes<br />
+            <span className="bg-gradient-to-r from-indigo-300 to-pink-300 bg-clip-text text-transparent">por no tener reservas online</span>
           </h2>
-          <p className="text-white/50 mb-10 max-w-lg mx-auto text-sm leading-relaxed">
-            Empieza a recibir reservas online, gestiona tus servicios y haz crecer tu negocio. Sin costos iniciales.
+          <p className="text-white/60 mb-10 max-w-lg mx-auto text-sm leading-relaxed">
+            El 73% de los clientes prefiere reservar online antes de llamar. Publica tu negocio gratis y empieza a recibir citas hoy mismo.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/register"
-              className="bg-white text-indigo-700 font-bold px-8 py-3.5 rounded-xl hover:bg-indigo-50 hover:shadow-xl transition-all text-sm">
-              Registra tu negocio gratis
+            <Link href="/register?role=VENDOR"
+              className="group inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-bold px-8 py-3.5 rounded-xl hover:shadow-xl hover:shadow-indigo-900/40 hover:-translate-y-0.5 transition-all text-sm">
+              Publicar mi negocio gratis
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link href="/subscription"
-              className="text-white/60 hover:text-white transition text-sm font-medium flex items-center gap-1.5">
-              Ver planes y precios <ArrowRight className="w-4 h-4" />
+              className="text-white/50 hover:text-white transition text-sm font-medium flex items-center gap-1.5">
+              Ver planes PRO <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="flex items-center justify-center gap-12 mt-14">
+          <div className="flex items-center justify-center gap-12 mt-14 border-t border-white/10 pt-10">
             {[
-              { value: 'S/ 0', label: 'Para empezar' },
-              { value: '3 min', label: 'Para configurar' },
-              { value: '27+', label: 'Categorías' },
+              { value: 'S/ 0', label: 'para empezar', sub: 'sin tarjeta' },
+              { value: '< 3 min', label: 'para configurar', sub: 'perfil completo' },
+              { value: '24/7', label: 'reservas online', sub: 'mientras duermes' },
             ].map(s => (
               <div key={s.label} className="text-center">
                 <p className="text-2xl sm:text-3xl font-black text-white">{s.value}</p>
-                <p className="text-white/40 text-xs mt-1">{s.label}</p>
+                <p className="text-white/50 text-xs mt-0.5">{s.label}</p>
+                <p className="text-white/30 text-[10px]">{s.sub}</p>
               </div>
             ))}
           </div>
