@@ -111,7 +111,11 @@ export default function HomePage() {
   const [category, setCategory] = useState('TODOS');
   const [city, setCity] = useState('TODAS');
   const [minRating, setMinRating] = useState('');
+  const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [sortBy, setSortBy] = useState('featured');
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const [carouselPaused, setCarouselPaused] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -154,35 +158,45 @@ export default function HomePage() {
   };
 
   const cities = ['TODAS', ...Array.from(new Set(businesses.map(b => b.city).filter(Boolean))).sort()];
-  const hasActiveFilters = minRating !== '' || maxPrice !== '';
+  const hasActiveFilters = minRating !== '' || minPrice !== '' || maxPrice !== '' || sortBy !== 'featured';
 
-  const fetchBusinesses = useCallback(() => {
+  const fetchBusinesses = useCallback((p = page) => {
     setLoading(true);
-    const params: Record<string, string> = {};
-    if (search)    params.search    = search;
-    if (category !== 'TODOS') params.category = category;
-    if (city !== 'TODAS')     params.city     = city;
-    if (minRating) params.minRating = minRating;
-    if (maxPrice)  params.maxPrice  = maxPrice;
+    const params: Record<string, string> = { page: String(p), limit: '12' };
+    if (search)               params.search    = search;
+    if (category !== 'TODOS') params.category  = category;
+    if (city !== 'TODAS')     params.city      = city;
+    if (minRating)            params.minRating = minRating;
+    if (minPrice)             params.minPrice  = minPrice;
+    if (maxPrice)             params.maxPrice  = maxPrice;
+    if (sortBy !== 'featured') params.sortBy   = sortBy;
 
     api.get('/businesses', { params })
       .then(res => {
         setBusinesses(res.data.businesses ?? []);
-        setTotal(res.data.total ?? res.data.businesses?.length ?? 0);
+        setTotal(res.data.total ?? 0);
+        setPages(res.data.pages ?? 1);
       })
-      .catch(() => { setBusinesses([]); setTotal(0); })
+      .catch(() => { setBusinesses([]); setTotal(0); setPages(1); })
       .finally(() => setLoading(false));
-  }, [search, category, city, minRating, maxPrice]);
+  }, [search, category, city, minRating, minPrice, maxPrice, sortBy, page]);
 
-  // Debounce search
+  // Debounce search; reset page on filter change
   useEffect(() => {
-    const t = setTimeout(fetchBusinesses, 300);
+    setPage(1);
+    const t = setTimeout(() => fetchBusinesses(1), 300);
     return () => clearTimeout(t);
-  }, [fetchBusinesses]);
+  }, [search, category, city, minRating, minPrice, maxPrice, sortBy]); // eslint-disable-line
+
+  // Page change without debounce
+  useEffect(() => {
+    fetchBusinesses(page);
+  }, [page]); // eslint-disable-line
 
   const clearAll = () => {
     setSearch(''); setCategory('TODOS'); setCity('TODAS');
-    setMinRating(''); setMaxPrice(''); setShowFilters(false);
+    setMinRating(''); setMinPrice(''); setMaxPrice('');
+    setSortBy('featured'); setPage(1); setShowFilters(false);
   };
 
   return (
@@ -257,9 +271,11 @@ export default function HomePage() {
             {/* Advanced filters panel */}
             {showFilters && (
               <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex flex-wrap gap-4 text-left">
+
+                {/* Rating */}
                 <div className="flex-1 min-w-[140px]">
                   <label className="block text-xs font-semibold text-white/60 mb-1.5">Rating mínimo</label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     {['', '3', '4', '4.5'].map(v => (
                       <button key={v} onClick={() => setMinRating(v)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${minRating === v ? 'bg-yellow-400 text-gray-900' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
@@ -268,9 +284,24 @@ export default function HomePage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Precio mín */}
+                <div className="flex-1 min-w-[140px]">
+                  <label className="block text-xs font-semibold text-white/60 mb-1.5">Precio mín. (S/)</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {['', '20', '50', '100'].map(v => (
+                      <button key={v} onClick={() => setMinPrice(v)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${minPrice === v ? 'bg-emerald-400 text-gray-900' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
+                        {v === '' ? 'Todos' : `≥ ${v}`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Precio máx */}
                 <div className="flex-1 min-w-[140px]">
                   <label className="block text-xs font-semibold text-white/60 mb-1.5">Precio máx. (S/)</label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     {['', '50', '100', '200'].map(v => (
                       <button key={v} onClick={() => setMaxPrice(v)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${maxPrice === v ? 'bg-indigo-400 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
@@ -279,8 +310,29 @@ export default function HomePage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Ordenar por */}
+                <div className="flex-1 min-w-[180px]">
+                  <label className="block text-xs font-semibold text-white/60 mb-1.5">Ordenar por</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {[
+                      { v: 'featured',   label: '⭐ Destacados' },
+                      { v: 'rating',     label: '🏆 Mejor rating' },
+                      { v: 'price_asc',  label: '💰 Menor precio' },
+                      { v: 'price_desc', label: '💎 Mayor precio' },
+                      { v: 'newest',     label: '🆕 Más nuevos' },
+                      { v: 'popular',    label: '🔥 Populares' },
+                    ].map(({ v, label }) => (
+                      <button key={v} onClick={() => setSortBy(v)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${sortBy === v ? 'bg-white text-indigo-700' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {hasActiveFilters && (
-                  <button onClick={() => { setMinRating(''); setMaxPrice(''); }}
+                  <button onClick={() => { setMinRating(''); setMinPrice(''); setMaxPrice(''); setSortBy('featured'); }}
                     className="self-end text-xs text-white/50 hover:text-white transition">
                     Limpiar filtros
                   </button>
@@ -593,6 +645,23 @@ export default function HomePage() {
               )}
             </div>
 
+            {/* Ordenamiento rápido */}
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              {[
+                { v: 'featured',   label: '⭐ Destacados' },
+                { v: 'rating',     label: '🏆 Rating' },
+                { v: 'price_asc',  label: '💰 Menor precio' },
+                { v: 'price_desc', label: '💎 Mayor precio' },
+                { v: 'newest',     label: '🆕 Nuevos' },
+                { v: 'popular',    label: '🔥 Populares' },
+              ].map(({ v, label }) => (
+                <button key={v} onClick={() => { setSortBy(v); setPage(1); }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${sortBy === v ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300 hover:text-indigo-600'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {businesses.map(business => {
                 const meta = CATEGORY_META[business.category] ?? CATEGORY_META.OTRO;
@@ -680,6 +749,40 @@ export default function HomePage() {
                 );
               })}
             </div>
+
+            {/* Paginación */}
+            {pages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-10">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="p-2 rounded-xl border border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                {Array.from({ length: Math.min(pages, 7) }, (_, i) => {
+                  const p = pages <= 7 ? i + 1 :
+                    page <= 4 ? i + 1 :
+                    page >= pages - 3 ? pages - 6 + i :
+                    page - 3 + i;
+                  return (
+                    <button key={p} onClick={() => setPage(p)}
+                      className={`w-9 h-9 rounded-xl text-sm font-bold transition-all ${page === p ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'border border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600'}`}>
+                      {p}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => setPage(p => Math.min(pages, p + 1))}
+                  disabled={page === pages}
+                  className="p-2 rounded-xl border border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </>
         )}
       </main>
