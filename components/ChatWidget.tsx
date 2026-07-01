@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, Loader2, ChevronDown } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, ChevronDown } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -95,7 +96,7 @@ export default function ChatWidget() {
             h-[85vh]
             /* Desktop: widget flotante en esquina */
             sm:bottom-6 sm:right-6 sm:left-auto sm:rounded-2xl
-            sm:w-96 sm:h-[520px]
+            sm:w-80 sm:h-[500px]
           `}>
 
             {/* Header */}
@@ -138,7 +139,24 @@ export default function ChatWidget() {
                       ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-br-sm'
                       : 'bg-gray-100 text-gray-800 rounded-bl-sm'
                   }`}>
-                    {msg.content}
+                    {msg.role === 'assistant' ? (
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                        strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+                        ul: ({ children }) => <ul className="list-disc pl-4 space-y-0.5">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal pl-4 space-y-0.5">{children}</ol>,
+                        li: ({ children }) => <li>{children}</li>,
+                        h2: ({ children }) => <p className="font-bold mt-1">{children}</p>,
+                        h3: ({ children }) => <p className="font-semibold mt-1">{children}</p>,
+                        table: ({ children }) => <table className="text-xs border-collapse w-full mt-1">{children}</table>,
+                        th: ({ children }) => <th className="border border-gray-300 px-1.5 py-0.5 bg-gray-200 font-semibold">{children}</th>,
+                        td: ({ children }) => <td className="border border-gray-300 px-1.5 py-0.5">{children}</td>,
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  ) : msg.content}
                   </div>
                 </div>
               ))}
