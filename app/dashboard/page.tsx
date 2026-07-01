@@ -12,7 +12,7 @@ import {
   Package, X, Check, Clock, AlertCircle,
   Zap, Crown, Sparkles, Pencil, Save, Image, Upload, Clock3, BarChart2, Lock,
   Mail, ClipboardCopy, Banknote, CalendarOff, Loader2,
-  BadgeCheck, Camera, Eye,
+  BadgeCheck, Camera, Eye, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 import FeaturedSection from '@/components/FeaturedSection';
@@ -523,6 +523,18 @@ export default function DashboardPage() {
   const [savingBlock, setSavingBlock] = useState(false);
   const [deletingBlock, setDeletingBlock] = useState<string | null>(null);
 
+  // Agenda — calendario de citas
+  interface AgendaBooking {
+    id: string; date: string; status: string; totalAmount: number; notes: string | null;
+    service: { name: string; duration: number; price: number };
+    client:  { name: string; phone: string | null; email: string };
+    payment: { status: string; provider: string } | null;
+  }
+  const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' }).format(new Date());
+  const [agendaDate, setAgendaDate] = useState<string>(todayISO());
+  const [agendaBookings, setAgendaBookings] = useState<AgendaBooking[]>([]);
+  const [agendaLoading, setAgendaLoading] = useState(false);
+
   // Perfil PRO
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [profileForm, setProfileForm] = useState({ slogan: '', description: '' });
@@ -815,9 +827,24 @@ export default function DashboardPage() {
       .finally(() => setAvailLoading(false));
   }, []);
 
+  const loadAgenda = useCallback((bizId: string, date: string) => {
+    setAgendaLoading(true);
+    api.get(`/bookings/business/${bizId}/agenda`, { params: { date } })
+      .then(res => setAgendaBookings(res.data.bookings ?? []))
+      .catch(() => setAgendaBookings([]))
+      .finally(() => setAgendaLoading(false));
+  }, []);
+
   useEffect(() => {
-    if (tab === 'Agenda' && selectedBizId) loadAvailBlocks(selectedBizId);
-  }, [tab, selectedBizId, loadAvailBlocks]);
+    if (tab === 'Agenda' && selectedBizId) {
+      loadAvailBlocks(selectedBizId);
+      loadAgenda(selectedBizId, agendaDate);
+    }
+  }, [tab, selectedBizId, loadAvailBlocks]); // eslint-disable-line
+
+  useEffect(() => {
+    if (tab === 'Agenda' && selectedBizId) loadAgenda(selectedBizId, agendaDate);
+  }, [agendaDate, selectedBizId]); // eslint-disable-line
 
   const handleAddBlock = async () => {
     if (!selectedBizId || !newBlock.startDate || !newBlock.endDate) return;
@@ -1652,91 +1679,254 @@ export default function DashboardPage() {
               {/* ── TAB: AGENDA ── */}
               {tab === 'Agenda' && (
                 <div className="p-6 space-y-6">
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Bloquear fechas no disponibles</h3>
-                    <p className="text-sm text-gray-500">Los clientes verán una advertencia si intentan reservar en estas fechas.</p>
-                  </div>
 
-                  {/* Formulario nuevo bloqueo */}
-                  <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                    <p className="text-sm font-medium text-gray-700">Agregar bloqueo</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* ─── SECCIÓN 1: Citas del día ─── */}
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
                       <div>
-                        <label className="block text-xs text-gray-500 mb-1">Desde</label>
-                        <input
-                          type="date"
-                          value={newBlock.startDate}
-                          min={new Date().toISOString().slice(0, 10)}
-                          onChange={e => setNewBlock(b => ({ ...b, startDate: e.target.value }))}
-                          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
+                        <h3 className="font-semibold text-gray-900">Citas del día</h3>
+                        <p className="text-xs text-gray-400 mt-0.5">Reservas confirmadas y pendientes para la fecha seleccionada</p>
                       </div>
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">Hasta</label>
+                      {/* Navegación de fecha */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          aria-label="Día anterior"
+                          onClick={() => {
+                            const d = new Date(agendaDate + 'T12:00:00');
+                            d.setDate(d.getDate() - 1);
+                            setAgendaDate(d.toISOString().slice(0, 10));
+                          }}
+                          className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition text-gray-500"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
                         <input
                           type="date"
-                          value={newBlock.endDate}
-                          min={newBlock.startDate || new Date().toISOString().slice(0, 10)}
-                          onChange={e => setNewBlock(b => ({ ...b, endDate: e.target.value }))}
-                          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          value={agendaDate}
+                          onChange={e => setAgendaDate(e.target.value)}
+                          className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                         />
+                        <button
+                          aria-label="Día siguiente"
+                          onClick={() => {
+                            const d = new Date(agendaDate + 'T12:00:00');
+                            d.setDate(d.getDate() + 1);
+                            setAgendaDate(d.toISOString().slice(0, 10));
+                          }}
+                          className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition text-gray-500"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setAgendaDate(todayISO())}
+                          className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition"
+                        >
+                          Hoy
+                        </button>
                       </div>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Motivo (opcional) — ej: Vacaciones, feriado, mantenimiento"
-                      value={newBlock.reason}
-                      onChange={e => setNewBlock(b => ({ ...b, reason: e.target.value }))}
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                    <button
-                      onClick={handleAddBlock}
-                      disabled={savingBlock || !newBlock.startDate || !newBlock.endDate}
-                      className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
-                    >
-                      {savingBlock ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                      Bloquear fechas
-                    </button>
-                  </div>
 
-                  {/* Lista de bloqueos activos */}
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-3">Bloqueos activos</p>
-                    {availLoading ? (
-                      <div className="flex justify-center py-8">
-                        <div className="w-6 h-6 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                    {/* Strip semanal */}
+                    {(() => {
+                      const base = new Date(agendaDate + 'T12:00:00');
+                      const mon = new Date(base);
+                      mon.setDate(base.getDate() - ((base.getDay() + 6) % 7));
+                      const days = Array.from({ length: 7 }, (_, i) => {
+                        const d = new Date(mon);
+                        d.setDate(mon.getDate() + i);
+                        return d;
+                      });
+                      const DAYS_ES = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
+                      return (
+                        <div className="grid grid-cols-7 gap-1 mb-5 bg-gray-50 rounded-xl p-2">
+                          {days.map((d, i) => {
+                            const iso = d.toISOString().slice(0, 10);
+                            const isSelected = iso === agendaDate;
+                            const isToday    = iso === todayISO();
+                            return (
+                              <button
+                                key={iso}
+                                onClick={() => setAgendaDate(iso)}
+                                className={`flex flex-col items-center py-2 rounded-lg transition-all text-xs font-semibold ${
+                                  isSelected
+                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
+                                    : isToday
+                                    ? 'bg-white border border-indigo-200 text-indigo-600'
+                                    : 'text-gray-500 hover:bg-white hover:text-gray-900'
+                                }`}
+                              >
+                                <span className="text-[10px] font-medium opacity-70">{DAYS_ES[i]}</span>
+                                <span className="text-sm font-black mt-0.5">{d.getDate()}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Timeline de citas */}
+                    {agendaLoading ? (
+                      <div className="flex justify-center py-10">
+                        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                       </div>
-                    ) : availBlocks.length === 0 ? (
-                      <div className="text-center py-10 border border-dashed border-gray-200 rounded-xl">
-                        <CalendarOff className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                        <p className="text-sm text-gray-400">No tienes fechas bloqueadas.</p>
+                    ) : agendaBookings.length === 0 ? (
+                      <div className="text-center py-12 border border-dashed border-gray-200 rounded-xl">
+                        <Calendar className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+                        <p className="text-sm font-medium text-gray-500">Sin citas para este día</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {new Date(agendaDate + 'T12:00:00').toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' })}
+                        </p>
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        {availBlocks.map(block => (
-                          <div key={block.id} className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3">
-                            <div>
-                              <p className="text-sm font-semibold text-gray-900">
-                                {new Date(block.startDate).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                {' — '}
-                                {new Date(block.endDate).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
-                              </p>
-                              {block.reason && <p className="text-xs text-gray-400 mt-0.5">{block.reason}</p>}
+                        {agendaBookings.map(bk => {
+                          const bkDate = new Date(bk.date);
+                          const timeStr = bkDate.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Lima' });
+                          const endDate = new Date(bkDate.getTime() + bk.service.duration * 60_000);
+                          const endStr  = endDate.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Lima' });
+                          const statusColors: Record<string, string> = {
+                            PENDING:   'bg-yellow-50 border-yellow-200',
+                            CONFIRMED: 'bg-blue-50 border-blue-200',
+                            COMPLETED: 'bg-green-50 border-green-200',
+                          };
+                          const statusLabel: Record<string, string> = {
+                            PENDING:   '⏳ Pendiente',
+                            CONFIRMED: '✅ Confirmada',
+                            COMPLETED: '🏁 Completada',
+                          };
+                          const isPaid = bk.payment?.status === 'PAID';
+                          return (
+                            <div key={bk.id} className={`flex gap-4 border rounded-xl px-4 py-3 ${statusColors[bk.status] ?? 'bg-gray-50 border-gray-200'}`}>
+                              {/* Hora */}
+                              <div className="flex-shrink-0 text-center w-14 pt-0.5">
+                                <p className="text-sm font-black text-gray-900">{timeStr}</p>
+                                <p className="text-[10px] text-gray-400">{endStr}</p>
+                              </div>
+                              {/* Separador */}
+                              <div className="w-px bg-gray-200 flex-shrink-0" />
+                              {/* Contenido */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <p className="font-semibold text-gray-900 text-sm">{bk.client.name}</p>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-[11px] font-semibold text-gray-500 bg-white border border-gray-200 px-2 py-0.5 rounded-full">
+                                      {statusLabel[bk.status] ?? bk.status}
+                                    </span>
+                                    {isPaid && (
+                                      <span className="text-[11px] font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                                        💵 Pagado
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <p className="text-xs text-gray-600 mt-0.5">{bk.service.name} · {bk.service.duration} min</p>
+                                <div className="flex items-center gap-3 mt-1">
+                                  <span className="text-xs font-bold text-indigo-600">S/ {bk.totalAmount.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                                  {bk.client.phone && (
+                                    <a href={`tel:${bk.client.phone}`} className="text-xs text-gray-400 hover:text-indigo-600 transition">
+                                      📞 {bk.client.phone}
+                                    </a>
+                                  )}
+                                  {bk.notes && <span className="text-xs text-gray-400 truncate">"{bk.notes}"</span>}
+                                </div>
+                              </div>
                             </div>
-                            <button
-                              onClick={() => handleDeleteBlock(block.id)}
-                              disabled={deletingBlock === block.id}
-                              className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition disabled:opacity-50"
-                            >
-                              {deletingBlock === block.id
-                                ? <Loader2 className="w-4 h-4 animate-spin" />
-                                : <Trash2 className="w-4 h-4" />
-                              }
-                            </button>
-                          </div>
-                        ))}
+                          );
+                        })}
+                        <p className="text-xs text-gray-400 text-center pt-2">
+                          {agendaBookings.length} cita{agendaBookings.length !== 1 ? 's' : ''} · S/ {agendaBookings.reduce((s, b) => s + b.totalAmount, 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })} total del día
+                        </p>
                       </div>
                     )}
+                  </div>
+
+                  <hr className="border-gray-100" />
+
+                  {/* ─── SECCIÓN 2: Bloquear fechas ─── */}
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Bloquear fechas no disponibles</h3>
+                    <p className="text-sm text-gray-500 mb-4">Los clientes verán una advertencia si intentan reservar en estas fechas.</p>
+
+                    <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                      <p className="text-sm font-medium text-gray-700">Agregar bloqueo</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Desde</label>
+                          <input
+                            type="date"
+                            value={newBlock.startDate}
+                            min={new Date().toISOString().slice(0, 10)}
+                            onChange={e => setNewBlock(b => ({ ...b, startDate: e.target.value }))}
+                            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Hasta</label>
+                          <input
+                            type="date"
+                            value={newBlock.endDate}
+                            min={newBlock.startDate || new Date().toISOString().slice(0, 10)}
+                            onChange={e => setNewBlock(b => ({ ...b, endDate: e.target.value }))}
+                            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Motivo (opcional) — ej: Vacaciones, feriado, mantenimiento"
+                        value={newBlock.reason}
+                        onChange={e => setNewBlock(b => ({ ...b, reason: e.target.value }))}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <button
+                        onClick={handleAddBlock}
+                        disabled={savingBlock || !newBlock.startDate || !newBlock.endDate}
+                        className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
+                      >
+                        {savingBlock ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                        Bloquear fechas
+                      </button>
+                    </div>
+
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-3">Bloqueos activos</p>
+                      {availLoading ? (
+                        <div className="flex justify-center py-8">
+                          <div className="w-6 h-6 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      ) : availBlocks.length === 0 ? (
+                        <div className="text-center py-10 border border-dashed border-gray-200 rounded-xl">
+                          <CalendarOff className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                          <p className="text-sm text-gray-400">No tienes fechas bloqueadas.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {availBlocks.map(block => (
+                            <div key={block.id} className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3">
+                              <div>
+                                <p className="text-sm font-semibold text-gray-900">
+                                  {new Date(block.startDate).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                  {' — '}
+                                  {new Date(block.endDate).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                </p>
+                                {block.reason && <p className="text-xs text-gray-400 mt-0.5">{block.reason}</p>}
+                              </div>
+                              <button
+                                onClick={() => handleDeleteBlock(block.id)}
+                                disabled={deletingBlock === block.id}
+                                className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition disabled:opacity-50"
+                                aria-label="Eliminar bloqueo"
+                              >
+                                {deletingBlock === block.id
+                                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                                  : <Trash2 className="w-4 h-4" />
+                                }
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
