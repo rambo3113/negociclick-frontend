@@ -212,7 +212,7 @@ export default function ReclamosPage() {
           ¿Necesitas ayuda adicional?{' '}
           <Link href="/contacto" className="text-indigo-600 font-semibold hover:underline">Contáctanos</Link>
           {' '}o visita{' '}
-          <a href="https://www.indecopi.gob.pe" target="_blank" rel="noopener noreferrer" className="text-indigo-600 font-semibold hover:underline">INDECOPI</a>
+          <a href="https://www.indecopi.gob.pe/web/proteccion-al-consumidor" target="_blank" rel="noopener noreferrer" className="text-indigo-600 font-semibold hover:underline">INDECOPI</a>
         </p>
       </main>
 
