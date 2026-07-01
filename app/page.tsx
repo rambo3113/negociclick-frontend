@@ -54,6 +54,13 @@ const CATEGORY_META: Record<string, { label: string; emoji: string; gradient: st
   NAIL_ART:            { label: 'Uñas / Nail Art',      emoji: '💅', gradient: 'from-pink-400 to-fuchsia-500' },
   FLORES:              { label: 'Venta de Flores',      emoji: '🌸', gradient: 'from-rose-400 to-pink-500' },
   TEJIDOS_CROCHET:     { label: 'Tejidos a Crochet',    emoji: '🧶', gradient: 'from-violet-400 to-purple-500' },
+  ENTRENADOR_PERSONAL: { label: 'Entrenador Personal',  emoji: '🏃', gradient: 'from-orange-500 to-red-600' },
+  FOTOGRAFIA:          { label: 'Fotografía',            emoji: '📷', gradient: 'from-gray-500 to-slate-700' },
+  MUDANZAS:            { label: 'Mudanzas',              emoji: '📦', gradient: 'from-amber-500 to-orange-600' },
+  FUMIGACION:          { label: 'Fumigación',            emoji: '🪲', gradient: 'from-green-600 to-teal-700' },
+  CLASES_MUSICA:       { label: 'Clases de Música',      emoji: '🎸', gradient: 'from-indigo-400 to-blue-600' },
+  CLASES_BAILE:        { label: 'Clases de Baile',       emoji: '💃', gradient: 'from-pink-500 to-fuchsia-600' },
+  ANIMACION_INFANTIL:  { label: 'Animación Infantil',    emoji: '🎈', gradient: 'from-yellow-400 to-orange-500' },
   OTRO:                { label: 'Otros',                emoji: '🏪', gradient: 'from-amber-400 to-orange-500' },
 };
 const CATEGORIES = Object.keys(CATEGORY_META);

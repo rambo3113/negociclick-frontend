@@ -10,6 +10,8 @@ const CATEGORY_SLUGS = [
   'depilacion-lima', 'masajes-domicilio-lima', 'nail-art-lima', 'peluqueria-canina-lima',
   'electricista-lima', 'gasfitero-lima', 'jardineria-lima', 'limpieza-hogar-lima',
   'reposteria-lima', 'catering-lima', 'clases-particulares-lima',
+  'entrenador-personal-lima', 'fotografia-lima', 'mudanzas-lima',
+  'fumigacion-lima', 'clases-musica-lima', 'clases-baile-lima', 'animacion-infantil-lima',
 ];
 
 export const revalidate = 3600;
