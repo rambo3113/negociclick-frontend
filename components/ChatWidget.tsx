@@ -14,7 +14,7 @@ export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: '¡Hola! Soy Nico, tu asistente de NegociClick 👋 ¿En qué puedo ayudarte hoy?' },
+    { role: 'assistant', content: '¡Hola! Soy Ozzy, tu asistente de NegociClick 👋 ¿En qué puedo ayudarte hoy?' },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -87,7 +87,7 @@ export default function ChatWidget() {
             <Bot className="w-4 h-4 text-white" />
           </div>
           <div>
-            <p className="text-white font-semibold text-sm leading-none">Nico</p>
+            <p className="text-white font-semibold text-sm leading-none">Ozzy</p>
             <p className="text-white/70 text-xs mt-0.5">Asistente NegociClick</p>
           </div>
           <span className="w-2 h-2 bg-emerald-400 rounded-full ml-1" />
