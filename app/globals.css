@@ -64,3 +64,66 @@ body {
 .fade-in {
   animation: fadeIn 0.25s ease-out both;
 }
+
+/* ── PILAR 4: Mobile touch targets ─────────────────────────────────── */
+/* Previene zoom automático en iOS en todos los inputs */
+input, select, textarea {
+  font-size: 16px;
+}
+/* Tamaño mínimo de toque recomendado Apple/WCAG (48px) */
+button, [role="button"] {
+  touch-action: manipulation;
+  min-height: 44px;
+}
+/* Los botones pequeños dentro de cards/badges quedan excluidos con clase */
+.btn-xs {
+  min-height: unset;
+}
+
+/* ── PILAR 5: Micro-interacciones ──────────────────────────────────── */
+/* Slide-in del panel de filtros */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-down {
+  animation: slideDown 0.2s ease-out both;
+}
+
+/* Active press feedback en todos los botones */
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* ── PILAR 6: Accesibilidad WCAG AAA ───────────────────────────────── */
+/* Skip link — sólo visible en focus */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 9999;
+  padding: 12px 20px;
+  background: #4f46e5;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 0 0 8px 8px;
+  text-decoration: none;
+  transition: top 0.15s;
+}
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Focus-visible ring consistente en toda la app */
+:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* Elimina outline en clicks de ratón (solo teclado) */
+:focus:not(:focus-visible) {
+  outline: none;
+}

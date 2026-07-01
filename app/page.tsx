@@ -202,6 +202,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
+      {/* Pilar 6: Skip link para teclado/lector de pantalla */}
+      <a href="#main-content" className="skip-link">Saltar al contenido principal</a>
       <Navbar />
 
       {/* ── HERO ── */}
@@ -253,7 +255,8 @@ export default function HomePage() {
               <div className="relative flex items-center bg-white rounded-2xl shadow-2xl overflow-hidden">
                 <Search className="w-5 h-5 text-gray-400 ml-4 flex-shrink-0" />
                 <input
-                  type="text"
+                  type="search"
+                  aria-label="Buscar negocios y servicios"
                   placeholder="Busca barbería, corte de pelo, spa..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
@@ -262,6 +265,7 @@ export default function HomePage() {
                 {cities.length > 2 && (
                   <div className="border-l border-gray-100 flex-shrink-0">
                     <select
+                      aria-label="Filtrar por ciudad"
                       value={city}
                       onChange={e => setCity(e.target.value)}
                       className="h-full px-3 py-4 text-sm text-gray-600 bg-transparent focus:outline-none cursor-pointer pr-8"
@@ -273,15 +277,17 @@ export default function HomePage() {
                   </div>
                 )}
                 <button
+                  aria-label={showFilters ? 'Cerrar filtros avanzados' : 'Abrir filtros avanzados'}
+                  aria-expanded={showFilters}
                   onClick={() => setShowFilters(v => !v)}
                   className={`border-l border-gray-100 px-4 py-4 flex items-center gap-1.5 text-sm font-medium transition-colors flex-shrink-0 ${showFilters || hasActiveFilters ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   <SlidersHorizontal className="w-4 h-4" />
-                  {hasActiveFilters && <span className="w-2 h-2 bg-indigo-600 rounded-full" />}
+                  {hasActiveFilters && <span className="w-2 h-2 bg-indigo-600 rounded-full" aria-hidden="true" />}
                 </button>
                 {(search || city !== 'TODAS') && (
-                  <button onClick={clearAll} className="mr-3 text-gray-300 hover:text-gray-500 transition flex-shrink-0">
-                    <X className="w-5 h-5" />
+                  <button aria-label="Limpiar búsqueda" onClick={clearAll} className="mr-3 text-gray-300 hover:text-gray-500 transition flex-shrink-0">
+                    <X className="w-5 h-5" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -289,7 +295,7 @@ export default function HomePage() {
 
             {/* Advanced filters panel */}
             {showFilters && (
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex flex-wrap gap-4 text-left">
+              <div role="group" aria-label="Filtros avanzados" className="animate-slide-down bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex flex-wrap gap-4 text-left">
 
                 {/* Rating */}
                 <div className="flex-1 min-w-[140px]">
@@ -297,7 +303,7 @@ export default function HomePage() {
                   <div className="flex gap-2 flex-wrap">
                     {['', '3', '4', '4.5'].map(v => (
                       <button key={v} onClick={() => setMinRating(v)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${minRating === v ? 'bg-yellow-400 text-gray-900' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
+                        className={`btn-xs px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${minRating === v ? 'bg-yellow-400 text-gray-900' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
                         {v === '' ? 'Todos' : `${v}★+`}
                       </button>
                     ))}
@@ -310,7 +316,7 @@ export default function HomePage() {
                   <div className="flex gap-2 flex-wrap">
                     {['', '20', '50', '100'].map(v => (
                       <button key={v} onClick={() => setMinPrice(v)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${minPrice === v ? 'bg-emerald-400 text-gray-900' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
+                        className={`btn-xs px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${minPrice === v ? 'bg-emerald-400 text-gray-900' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
                         {v === '' ? 'Todos' : `≥ ${v}`}
                       </button>
                     ))}
@@ -323,7 +329,7 @@ export default function HomePage() {
                   <div className="flex gap-2 flex-wrap">
                     {['', '50', '100', '200'].map(v => (
                       <button key={v} onClick={() => setMaxPrice(v)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${maxPrice === v ? 'bg-indigo-400 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
+                        className={`btn-xs px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${maxPrice === v ? 'bg-indigo-400 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
                         {v === '' ? 'Todos' : `≤ ${v}`}
                       </button>
                     ))}
@@ -343,7 +349,7 @@ export default function HomePage() {
                       { v: 'popular',    label: '🔥 Populares' },
                     ].map(({ v, label }) => (
                       <button key={v} onClick={() => setSortBy(v)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${sortBy === v ? 'bg-white text-indigo-700' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
+                        className={`btn-xs px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${sortBy === v ? 'bg-white text-indigo-700' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
                         {label}
                       </button>
                     ))}
@@ -380,14 +386,14 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
             <Link
               href="/register?role=VENDOR"
-              className="group inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-pink-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-900/40 hover:shadow-xl hover:shadow-indigo-900/60 hover:-translate-y-0.5 transition-all duration-200"
+              className="group inline-flex items-center gap-2 px-6 py-3 min-h-[48px] bg-gradient-to-r from-indigo-500 to-pink-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-900/40 hover:shadow-xl hover:shadow-indigo-900/60 hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
             >
               Publica tu negocio gratis
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-semibold rounded-xl hover:bg-white/20 hover:border-white/35 transition-all duration-200"
+              className="inline-flex items-center gap-2 px-6 py-3 min-h-[48px] bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-semibold rounded-xl hover:bg-white/20 hover:border-white/35 active:scale-95 transition-all duration-200"
             >
               Buscar servicios →
             </Link>
@@ -550,6 +556,7 @@ export default function HomePage() {
 
           {/* Flecha izquierda */}
           <button
+            aria-label="Desplazar categorías hacia la izquierda"
             onClick={() => scrollCarousel('left')}
             onMouseEnter={() => setCarouselPaused(true)}
             onMouseLeave={() => setCarouselPaused(false)}
@@ -597,6 +604,7 @@ export default function HomePage() {
 
           {/* Flecha derecha */}
           <button
+            aria-label="Desplazar categorías hacia la derecha"
             onClick={() => scrollCarousel('right')}
             onMouseEnter={() => setCarouselPaused(true)}
             onMouseLeave={() => setCarouselPaused(false)}
@@ -613,14 +621,15 @@ export default function HomePage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             <input
               type="search"
+              aria-label="Buscar negocios y servicios"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar negocios o servicios..."
-              className="w-full pl-9 pr-8 py-2 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              className="w-full pl-9 pr-8 py-2.5 bg-gray-100 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                <X className="w-4 h-4" />
+              <button aria-label="Limpiar búsqueda" onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
             )}
           </div>
@@ -628,7 +637,7 @@ export default function HomePage() {
       </div>
 
       {/* ── GRID ── */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 py-10 w-full">
+      <main id="main-content" aria-label="Listado de negocios" className="flex-1 max-w-7xl mx-auto px-4 py-10 w-full">
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}

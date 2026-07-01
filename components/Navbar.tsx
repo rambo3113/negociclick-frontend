@@ -120,10 +120,10 @@ export default function Navbar() {
                   </Link>
                   <button
                     onClick={handleLogout}
-                    title="Cerrar sesión"
+                    aria-label="Cerrar sesión"
                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               </>
@@ -147,10 +147,12 @@ export default function Navbar() {
 
           {/* Mobile hamburger */}
           <button
+            aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={mobileOpen}
             className="sm:hidden p-2 text-gray-600 rounded-xl hover:bg-gray-100 transition-all"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
           </button>
         </div>
       </div>
