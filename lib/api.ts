@@ -7,7 +7,12 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = Cookies.get('token');
+  // JWT en Authorization header — el navegador nunca envía este header
+  // automáticamente en requests cross-origin, lo que previene CSRF por diseño.
+  // NO remover: es la primera línea de defensa anti-CSRF.
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  // Segundo escudo anti-CSRF: header custom que bloquea requests cross-origin simples.
+  // NO remover sin revisar las implicaciones de seguridad.
   config.headers['X-Requested-With'] = 'XMLHttpRequest';
   return config;
 });
