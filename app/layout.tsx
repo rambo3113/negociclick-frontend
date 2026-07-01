@@ -13,7 +13,9 @@ export const metadata: Metadata = {
   description: "Reserva los mejores barberos, dentistas, masajistas, spas y más en Lima, Perú. Más de 27 categorías de servicios. Agenda en segundos, paga seguro.",
   keywords: ["reservas Lima", "servicios Lima", "barbería Lima", "spa Lima", "dentista Lima", "NegociClick", "reservar cita Lima"],
   authors: [{ name: "NegociClick" }],
-  verification: { google: "KY0BEeO6fOlHtr_U0Ey7Qxl2uo4Pf7Vi0BgtPNRt688" },
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } }
+    : {}),
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
   openGraph: {
     type: "website",
