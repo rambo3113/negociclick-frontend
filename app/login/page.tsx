@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import Logo from '@/components/Logo';
+import api from '@/lib/api';
 import {
   Eye, EyeOff, AlertCircle, ArrowRight,
   Mail, Lock, User, Store,
   ShieldCheck, Clock, Star, TrendingUp, Calendar, Sparkles,
+  Smartphone,
 } from 'lucide-react';
 
 type Role = 'CLIENT' | 'VENDOR';
@@ -75,7 +77,7 @@ const ROLE_CONFIG = {
 } as const;
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, completeLogin } = useAuth();
   const router = useRouter();
   const [role, setRole] = useState<Role>('CLIENT');
   const [email, setEmail] = useState('');
@@ -84,6 +86,11 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // 2FA state
+  const [twoFactorMode, setTwoFactorMode] = useState(false);
+  const [tempToken, setTempToken] = useState('');
+  const [totpCode, setTotpCode] = useState('');
+
   const cfg = ROLE_CONFIG[role];
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
@@ -91,10 +98,34 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
+      const result = await login(email, password);
+      if (result?.requiresTwoFactor) {
+        setTempToken(result.tempToken);
+        setTwoFactorMode(true);
+        setLoading(false);
+        return;
+      }
       router.push(role === 'VENDOR' ? '/dashboard' : '/');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Credenciales incorrectas. Verifica tu correo y contraseña.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handle2FASubmit = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const res = await api.post('/auth/2fa/verify-login', { code: totpCode }, {
+        headers: { Authorization: `Bearer ${tempToken}` },
+      });
+      const { token, refreshToken, user } = res.data;
+      completeLogin(token, refreshToken, user);
+      router.push(role === 'VENDOR' ? '/dashboard' : '/');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Código incorrecto. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -198,72 +229,123 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {twoFactorMode ? (
+              /* ── Paso 2: verificar código 2FA ── */
+              <form onSubmit={handle2FASubmit} className="space-y-4" noValidate>
+                <div className="flex flex-col items-center text-center mb-2">
+                  <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center mb-3">
+                    <Smartphone className="w-6 h-6 text-indigo-600" />
+                  </div>
+                  <p className="text-sm text-gray-600 leading-snug">
+                    Ingresa el código de 6 dígitos de tu autenticador<br />
+                    o un código de respaldo de 8 caracteres.
+                  </p>
+                </div>
 
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Correo electrónico
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Código de verificación
+                  </label>
                   <input
-                    type="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    type="text"
+                    value={totpCode}
+                    onChange={e => setTotpCode(e.target.value.replace(/\s/g, ''))}
                     required
-                    autoComplete="email"
-                    placeholder="tu@email.com"
-                    className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-900 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
+                    autoComplete="one-time-code"
+                    placeholder="000000"
+                    maxLength={8}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-center text-2xl font-mono tracking-widest text-gray-900 bg-gray-50 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
                   />
                 </div>
-              </div>
 
-              {/* Contraseña */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-sm font-semibold text-gray-700">Contraseña</label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-indigo-500 hover:text-indigo-700 font-medium transition-colors"
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                  <input
-                    type={showPwd ? 'text' : 'password'}
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                    autoComplete="current-password"
-                    placeholder="Tu contraseña"
-                    className="w-full border border-gray-200 rounded-xl pl-10 pr-11 py-3 text-sm text-gray-900 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPwd(v => !v)}
-                    aria-label={showPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
+                <button
+                  type="submit"
+                  disabled={loading || totpCode.length < 6}
+                  className={`w-full bg-gradient-to-r ${cfg.btnColor} text-white py-3.5 rounded-xl font-bold text-sm hover:opacity-90 hover:shadow-lg ${cfg.btnShadow} hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none flex items-center justify-center gap-2`}
+                >
+                  {loading
+                    ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    : <><span>Verificar y entrar</span><ArrowRight className="w-4 h-4" /></>
+                  }
+                </button>
 
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-full bg-gradient-to-r ${cfg.btnColor} text-white py-3.5 rounded-xl font-bold text-sm hover:opacity-90 hover:shadow-lg ${cfg.btnShadow} hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none flex items-center justify-center gap-2 mt-1`}
-              >
-                {loading
-                  ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  : <><span>{cfg.btnLabel}</span><ArrowRight className="w-4 h-4" /></>
-                }
-              </button>
-            </form>
+                <button
+                  type="button"
+                  onClick={() => { setTwoFactorMode(false); setTotpCode(''); setError(''); }}
+                  className="w-full text-center text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  ← Volver al inicio de sesión
+                </button>
+              </form>
+            ) : (
+              /* ── Paso 1: email + contraseña ── */
+              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Correo electrónico
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                      placeholder="tu@email.com"
+                      className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-900 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Contraseña */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-sm font-semibold text-gray-700">Contraseña</label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs text-indigo-500 hover:text-indigo-700 font-medium transition-colors"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      type={showPwd ? 'text' : 'password'}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      required
+                      autoComplete="current-password"
+                      placeholder="Tu contraseña"
+                      className="w-full border border-gray-200 rounded-xl pl-10 pr-11 py-3 text-sm text-gray-900 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPwd(v => !v)}
+                      aria-label={showPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`w-full bg-gradient-to-r ${cfg.btnColor} text-white py-3.5 rounded-xl font-bold text-sm hover:opacity-90 hover:shadow-lg ${cfg.btnShadow} hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none flex items-center justify-center gap-2 mt-1`}
+                >
+                  {loading
+                    ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    : <><span>{cfg.btnLabel}</span><ArrowRight className="w-4 h-4" /></>
+                  }
+                </button>
+              </form>
+            )}
 
             {/* Divisor */}
             <div className="flex items-center gap-3 my-5">

@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import api from './api';
 
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;
@@ -14,10 +14,16 @@ interface User {
   emailVerified?: boolean;
 }
 
+export interface TwoFactorChallenge {
+  requiresTwoFactor: true;
+  tempToken: string;
+}
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void | TwoFactorChallenge>;
+  completeLogin: (token: string, refreshToken: string, user: User) => void;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
@@ -52,13 +58,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<void | TwoFactorChallenge> => {
     const res = await api.post('/auth/login', { email, password });
+    if (res.data.requiresTwoFactor) {
+      return { requiresTwoFactor: true, tempToken: res.data.tempToken };
+    }
     const { token: t, refreshToken: rt, user: u } = res.data;
     Cookies.set('token', t, { expires: 1 / 96, secure: true, sameSite: 'Strict' }); // 15min
     Cookies.set('refreshToken', rt, { expires: 7, secure: true, sameSite: 'Strict' });
     setToken(t);
     setUser(u);
+  };
+
+  const completeLogin = (token: string, refreshToken: string, user: User) => {
+    Cookies.set('token', token, { expires: 1 / 96, secure: true, sameSite: 'Strict' });
+    Cookies.set('refreshToken', refreshToken, { expires: 7, secure: true, sameSite: 'Strict' });
+    setToken(token);
+    setUser(user);
   };
 
   const register = async (data: RegisterData) => {
@@ -88,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, refreshProfile, loading }}>
+    <AuthContext.Provider value={{ user, token, login, completeLogin, register, logout, refreshProfile, loading }}>
       {children}
     </AuthContext.Provider>
   );
