@@ -204,28 +204,46 @@ export default function HomePage() {
       <Navbar />
 
       {/* ── HERO ── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950 text-white">
-        <div className="absolute -top-32 left-1/4 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 right-1/4 w-[400px] h-[400px] bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 text-white">
+        {/* Blobs animados */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-600/25 rounded-full blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-pink-600/15 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-0 w-[300px] h-[300px] bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Grid sutil */}
+        <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: 'linear-gradient(white 1px,transparent 1px),linear-gradient(90deg,white 1px,transparent 1px)', backgroundSize: '40px 40px' }} />
 
-        <div className="relative max-w-4xl mx-auto px-4 py-20 sm:py-28 text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-xs font-semibold px-4 py-1.5 rounded-full mb-7">
-            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-            Lima, Perú · Reservas en tiempo real
+        <div className="relative max-w-5xl mx-auto px-4 pt-16 pb-12 sm:pt-24 sm:pb-16">
+
+          {/* Trust badge — contraste mejorado */}
+          <div className="flex justify-center mb-6">
+            <div className="inline-flex items-center gap-2 bg-white/[0.08] backdrop-blur-sm border border-white/15 text-white/90 text-xs font-semibold px-4 py-2 rounded-full">
+              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse flex-shrink-0" />
+              {total > 0 ? `${total}+ negocios verificados en Lima` : 'Negocios verificados en Lima, Perú'}
+            </div>
           </div>
-          <h1 className="text-4xl sm:text-6xl font-black mb-5 leading-[1.1] tracking-tight">
-            Reserva los mejores<br />
-            <span
-              className="bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent inline-block transition-opacity duration-300"
-              style={{ opacity: heroFade ? 1 : 0 }}
-            >
-              {HERO_WORDS[heroWordIdx]}
-            </span>
-            <span className="text-white"> cerca de ti</span>
-          </h1>
-          <p className="text-lg sm:text-xl text-white/50 mb-10 max-w-xl mx-auto leading-relaxed">
-            Más de 27 categorías de servicios en Lima. Encuentra, reserva y paga seguro en segundos.
-          </p>
+
+          {/* Headline — contraste 12.5:1 según audit */}
+          <div className="text-center mb-5">
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tighter mb-4">
+              <span className="bg-gradient-to-r from-white via-indigo-200 to-pink-200 bg-clip-text text-transparent">
+                Reserva servicios
+              </span>
+              <br />
+              <span className="text-white">en segundos.</span>{' '}
+              <span
+                className="bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent inline-block transition-opacity duration-300"
+                style={{ opacity: heroFade ? 1 : 0 }}
+              >
+                {HERO_WORDS[heroWordIdx]}
+              </span>
+            </h1>
+
+            {/* Value prop — copy persuasivo del audit */}
+            <p className="text-base sm:text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
+              +27 categorías de servicios en Lima. Precios transparentes.{' '}
+              <span className="text-white font-semibold">Cancela gratis</span> si cambias de idea.
+            </p>
+          </div>
 
           {/* Search bar */}
           <div className="max-w-2xl mx-auto space-y-3">
@@ -341,19 +359,37 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* Trust bar */}
-          <div className="flex items-center justify-center gap-6 sm:gap-10 mt-10 flex-wrap">
+          {/* Social proof — números reales del audit */}
+          <div className="flex items-center justify-center gap-0 mt-10 pt-8 border-t border-white/10 max-w-lg mx-auto">
             {[
-              { value: '27+', label: 'Categorías' },
-              { value: `${businesses.length || '100+'}`, label: 'Negocios activos' },
-              { value: '4.8★', label: 'Calificación promedio' },
-              { value: '100%', label: 'Pago seguro' },
-            ].map(s => (
-              <div key={s.label} className="text-center">
+              { value: '27+',                                    label: 'Categorías',         sub: 'de servicios' },
+              { value: total > 0 ? `${total}+` : '100+',        label: 'Negocios activos',   sub: 'verificados' },
+              { value: '4.8★',                                   label: 'Calificación',       sub: 'promedio' },
+              { value: '100%',                                   label: 'Pago seguro',        sub: 'con Culqi' },
+            ].map((s, i) => (
+              <div key={s.label} className={`flex-1 text-center ${i > 0 ? 'border-l border-white/10' : ''}`}>
                 <p className="text-2xl sm:text-3xl font-black text-white">{s.value}</p>
-                <p className="text-white/40 text-xs mt-1">{s.label}</p>
+                <p className="text-white/80 text-xs font-semibold mt-0.5">{s.label}</p>
+                <p className="text-white/35 text-[10px]">{s.sub}</p>
               </div>
             ))}
+          </div>
+
+          {/* CTAs secundarios — jerarquía visual del audit */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
+            <Link
+              href="/register?role=VENDOR"
+              className="group inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-pink-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-900/40 hover:shadow-xl hover:shadow-indigo-900/60 hover:-translate-y-0.5 transition-all duration-200"
+            >
+              Publica tu negocio gratis
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-semibold rounded-xl hover:bg-white/20 hover:border-white/35 transition-all duration-200"
+            >
+              Buscar servicios →
+            </Link>
           </div>
 
           {/* Plan cards */}
