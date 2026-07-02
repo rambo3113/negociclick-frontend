@@ -891,9 +891,9 @@ export default function HomePage() {
             El 73% de los clientes prefiere reservar online antes de llamar. Publica tu negocio gratis y empieza a recibir citas hoy mismo.
           </p>
           {/* Trial badge */}
-          <div className="inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 text-xs font-bold px-4 py-2 rounded-full mb-8">
+          <Link href="/para-negocios" className="inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 text-xs font-bold px-4 py-2 rounded-full mb-8 hover:bg-yellow-400/20 transition">
             ✨ 14 días de PRO gratis — sin tarjeta de crédito
-          </div>
+          </Link>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/register?role=VENDOR"
               className="group inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-bold px-8 py-3.5 rounded-xl hover:shadow-xl hover:shadow-indigo-900/40 hover:-translate-y-0.5 transition-all text-sm">
