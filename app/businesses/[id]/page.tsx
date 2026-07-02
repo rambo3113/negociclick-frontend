@@ -1115,8 +1115,8 @@ export default function BusinessDetailPage() {
                   {selectedServices.length > 0 && (
                     <div className="mx-4 mt-4 space-y-1.5">
                       {selectedServices.map(sv => (
-                        <div key={sv.id} className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-center justify-between">
-                          <div>
+                        <div key={sv.id} className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-indigo-800">{sv.name}</p>
                             {sv.duration && (
                               <p className="text-xs text-indigo-500 flex items-center gap-1 mt-0.5">
@@ -1124,7 +1124,15 @@ export default function BusinessDetailPage() {
                               </p>
                             )}
                           </div>
-                          <span className="font-black text-indigo-700 text-sm">S/ {Number(sv.price).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                          <span className="font-black text-indigo-700 text-sm flex-shrink-0">S/ {Number(sv.price).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleService(sv)}
+                            className="w-6 h-6 rounded-full bg-indigo-200 hover:bg-red-100 hover:text-red-600 text-indigo-500 flex items-center justify-center transition-colors flex-shrink-0"
+                            title="Quitar servicio"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       ))}
                       {selectedServices.length > 1 && (
