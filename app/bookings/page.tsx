@@ -9,6 +9,35 @@ import { useToast } from '@/components/Toast';
 import { Calendar, MapPin, Clock, CheckCircle, Star, X, Send, Loader2, RefreshCw, CreditCard, AlertTriangle } from 'lucide-react';
 import CulqiPaymentModal from '@/components/CulqiPaymentModal';
 
+// Decodifica entidades HTML básicas guardadas por versiones antiguas del backend
+function decodeHtml(s: string): string {
+  return s
+    .replace(/&#x2F;/g, '/')
+    .replace(/&#x27;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+}
+
+// Extrae nombre de servicios y total de notas con formato [MULTI-SERVICIO] o [SERVICIOS:]
+function parseMultiServiceNotes(notes?: string): { names: string | null; total: string | null } {
+  if (!notes) return { names: null, total: null };
+  if (notes.startsWith('[SERVICIOS:')) {
+    const match = notes.match(/^\[SERVICIOS: (.+?)\]/);
+    return { names: match ? decodeHtml(match[1]) : null, total: null };
+  }
+  if (notes.startsWith('[MULTI-SERVICIO]')) {
+    const body = notes.slice('[MULTI-SERVICIO] '.length);
+    const parts = body.split(' | ');
+    const names = decodeHtml(parts[0] ?? '');
+    const totalPart = parts.find(p => p.startsWith('Total:'));
+    const total = totalPart ? totalPart.slice('Total: '.length) : null;
+    return { names, total };
+  }
+  return { names: null, total: null };
+}
+
 interface Booking {
   id: string;
   date: string;
@@ -320,17 +349,7 @@ function BookingsContent() {
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <h3 className="font-semibold text-gray-900">
-                          {(() => {
-                            // Formato nuevo: [SERVICIOS: name1, name2]
-                            const newFmt = booking.notes?.match(/^\[SERVICIOS: (.+?)\]/);
-                            if (newFmt) return newFmt[1];
-                            // Formato antiguo: [MULTI-SERVICIO] name1 (S/X) + name2 (S/X) | Total: ...
-                            if (booking.notes?.startsWith('[MULTI-SERVICIO]')) {
-                              const body = booking.notes.slice('[MULTI-SERVICIO] '.length);
-                              return body.split(' | ')[0] ?? booking.service.name;
-                            }
-                            return booking.service.name;
-                          })()}
+                          {parseMultiServiceNotes(booking.notes).names ?? booking.service.name}
                         </h3>
                         <div className="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
                           <MapPin className="w-3.5 h-3.5" />
@@ -393,7 +412,8 @@ function BookingsContent() {
                     {/* Footer */}
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                       <span className="font-bold text-gray-900 text-lg">
-                        S/ {Number(booking.totalAmount).toFixed(2)}
+                        {parseMultiServiceNotes(booking.notes).total
+                          ?? `S/ ${Number(booking.totalAmount).toFixed(2)}`}
                       </span>
 
                       <div className="flex gap-2 flex-wrap justify-end">
