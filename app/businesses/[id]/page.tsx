@@ -229,7 +229,7 @@ export default function BusinessDetailPage() {
     let h = parseInt(bookingHour);
     if (bookingAmPm === 'PM' && h !== 12) h += 12;
     if (bookingAmPm === 'AM' && h === 12) h = 0;
-    return `${bookingDate}T${String(h).padStart(2, '0')}:${bookingMinute}:00`;
+    return `${bookingDate}T${String(h).padStart(2, '0')}:${bookingMinute}:00-05:00`;
   };
   const toast = useToast();
 
