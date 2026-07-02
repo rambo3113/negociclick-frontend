@@ -66,9 +66,9 @@ const CATEGORY_META: Record<string, { label: string; emoji: string; gradient: st
 const CATEGORIES = Object.keys(CATEGORY_META);
 
 const HERO_WORDS = [
-  'barberos', 'dentistas', 'masajistas', 'gimnasios',
-  'nutricionistas', 'tatuadores', 'psicólogos', 'chefs',
-  'electricistas', 'jardineros', 'nail artists', 'DJ\'s',
+  'Barberos', 'Dentistas', 'Masajistas', 'Gimnasios',
+  'Nutricionistas', 'Tatuadores', 'Psicólogos', 'Chefs',
+  'Electricistas', 'Jardineros', 'Nail artists', 'DJs',
 ];
 
 const PRO_PERIODS = [
@@ -235,17 +235,18 @@ export default function HomePage() {
           {/* Headline — contraste 12.5:1 según audit */}
           <div className="text-center mb-5">
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tighter mb-4">
-              <span className="bg-gradient-to-r from-white via-indigo-200 to-pink-200 bg-clip-text text-transparent">
-                Reserva servicios
-              </span>
-              <br />
-              <span className="text-white">en segundos.</span>{' '}
               <span
                 className="bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent inline-block transition-opacity duration-300"
                 style={{ opacity: heroFade ? 1 : 0 }}
+                aria-live="polite"
               >
                 {HERO_WORDS[heroWordIdx]}
               </span>
+              <br />
+              <span className="bg-gradient-to-r from-white via-indigo-200 to-pink-200 bg-clip-text text-transparent">
+                en Lima,{' '}
+              </span>
+              <span className="text-white">en segundos.</span>
             </h1>
 
             {/* Value prop — copy persuasivo del audit */}

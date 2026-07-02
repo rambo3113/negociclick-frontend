@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/devoluciones' },
   title: 'Política de devoluciones',
   description: 'Conoce nuestra política de cancelaciones, reembolsos y devoluciones en NegociClick.',
   keywords: ['devoluciones NegociClick', 'reembolsos servicios Lima', 'política devoluciones marketplace Perú'],

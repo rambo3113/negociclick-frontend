@@ -7,6 +7,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Para Negocios — Publica y crece en Lima',
   description: 'Lleva tu negocio al siguiente nivel con NegociClick. Reservas 24/7, panel de gestión y 14 días de PRO gratis sin tarjeta.',
+  alternates: { canonical: '/para-negocios' },
 };
 
 const BENEFITS = [

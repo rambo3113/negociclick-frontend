@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
-const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://negociclick.pe';
+const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.negociclick.com';
 
 const CATEGORY_SLUGS = [
   'barberia-lima', 'spa-lima', 'salon-belleza-lima', 'dentista-lima',

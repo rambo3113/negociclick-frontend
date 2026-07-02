@@ -4,6 +4,7 @@ import Footer from '@/components/Footer';
 import { Mail, Phone, MapPin, Clock, MessageCircle } from 'lucide-react';
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/contacto' },
   title: 'Contacto',
   description: 'Contáctanos por email, WhatsApp o visítanos en Lima, Perú. Estamos disponibles para ayudarte.',
   keywords: ['contacto NegociClick', 'WhatsApp NegociClick', 'soporte Lima', 'ayuda NegociClick Lima'],

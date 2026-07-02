@@ -9,7 +9,7 @@ import CookieBanner from "@/components/CookieBanner";
 const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://negociclick.pe'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.negociclick.com'),
   title: { default: "NegociClick — Reserva servicios en Lima", template: "%s | NegociClick" },
   description: "Reserva los mejores barberos, dentistas, masajistas, spas y más en Lima, Perú. Más de 27 categorías de servicios. Agenda en segundos, paga seguro.",
   keywords: ["reservas Lima", "servicios Lima", "barbería Lima", "spa Lima", "dentista Lima", "NegociClick", "reservar cita Lima"],

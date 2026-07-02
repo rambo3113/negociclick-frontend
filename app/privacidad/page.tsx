@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Logo from '@/components/Logo';
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/privacidad' },
   title: 'Política de Privacidad · NegociClick',
   description: 'Política de privacidad y tratamiento de datos personales de NegociClick.',
   keywords: ['política privacidad NegociClick', 'protección datos Lima', 'privacidad marketplace Perú'],
