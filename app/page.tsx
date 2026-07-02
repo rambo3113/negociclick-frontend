@@ -887,24 +887,28 @@ export default function HomePage() {
             Deja de perder clientes<br />
             <span className="bg-gradient-to-r from-indigo-300 to-pink-300 bg-clip-text text-transparent">por no tener reservas online</span>
           </h2>
-          <p className="text-white/60 mb-10 max-w-lg mx-auto text-sm leading-relaxed">
+          <p className="text-white/60 mb-6 max-w-lg mx-auto text-sm leading-relaxed">
             El 73% de los clientes prefiere reservar online antes de llamar. Publica tu negocio gratis y empieza a recibir citas hoy mismo.
           </p>
+          {/* Trial badge */}
+          <div className="inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 text-xs font-bold px-4 py-2 rounded-full mb-8">
+            ✨ 14 días de PRO gratis — sin tarjeta de crédito
+          </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/register?role=VENDOR"
               className="group inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-bold px-8 py-3.5 rounded-xl hover:shadow-xl hover:shadow-indigo-900/40 hover:-translate-y-0.5 transition-all text-sm">
               Publicar mi negocio gratis
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link href="/subscription"
+            <Link href="/para-negocios"
               className="text-white/50 hover:text-white transition text-sm font-medium flex items-center gap-1.5">
-              Ver planes PRO <ArrowRight className="w-4 h-4" />
+              Ver cómo funciona <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
           <div className="flex items-center justify-center gap-12 mt-14 border-t border-white/10 pt-10">
             {[
               { value: 'S/ 0', label: 'para empezar', sub: 'sin tarjeta' },
-              { value: '< 3 min', label: 'para configurar', sub: 'perfil completo' },
+              { value: '14 días', label: 'de PRO gratis', sub: 'trial incluido' },
               { value: '24/7', label: 'reservas online', sub: 'mientras duermes' },
             ].map(s => (
               <div key={s.label} className="text-center">
