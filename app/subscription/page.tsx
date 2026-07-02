@@ -41,6 +41,9 @@ export default function SubscriptionPage() {
 
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [daysUntilExpiry, setDaysUntilExpiry] = useState<number | null>(null);
+  const [isTrial, setIsTrial] = useState(false);
+  const [trialUsed, setTrialUsed] = useState(false);
+  const [activatingTrial, setActivatingTrial] = useState<'PRO' | 'PREMIUM' | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
@@ -62,6 +65,8 @@ export default function SubscriptionPage() {
         .then(res => {
           setSubscription(res.data.subscription);
           setDaysUntilExpiry(res.data.daysUntilExpiry ?? null);
+          setIsTrial(res.data.isTrial ?? false);
+          // Si ya usó trial y está en FREE, lo detectamos al intentar activar
         })
         .catch(() => setSubscription(null))
         .finally(() => setLoading(false));
@@ -114,6 +119,23 @@ export default function SubscriptionPage() {
     setSubscription(sub); setPayingState(null);
     setSuccess(`¡Plan ${sub.plan} activado exitosamente!`);
     setTimeout(() => setSuccess(''), 4000);
+  };
+
+  const handleActivateTrial = async (plan: 'PRO' | 'PREMIUM') => {
+    setActivatingTrial(plan); setError(''); setSuccess('');
+    try {
+      const res = await api.post('/subscriptions/trial', { plan });
+      setSubscription(res.data.subscription);
+      setIsTrial(true);
+      setDaysUntilExpiry(14);
+      setSuccess(res.data.message);
+    } catch (err: any) {
+      const msg = err.response?.data?.error || 'Error al activar el trial';
+      if (msg.includes('Ya usaste tu trial')) setTrialUsed(true);
+      setError(msg);
+    } finally {
+      setActivatingTrial(null);
+    }
   };
 
   if (loading) return (
@@ -177,6 +199,58 @@ export default function SubscriptionPage() {
         {success && (
           <div className="mb-4 flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3">
             <Check className="w-4 h-4 flex-shrink-0" /><p className="text-sm font-medium">{success}</p>
+          </div>
+        )}
+
+        {/* ── Bloque Trial ── solo visible si está en FREE y no tiene trial activo */}
+        {currentPlan === 'FREE' && !isTrial && (
+          <div className="mb-6 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <Sparkles className="w-5 h-5 text-yellow-300" />
+                  <span className="font-bold text-lg">Prueba gratis 14 días</span>
+                </div>
+                <p className="text-indigo-100 text-sm leading-relaxed">
+                  Activa el trial de <strong>PRO</strong> o <strong>PREMIUM</strong> sin tarjeta. Solo necesitas tener tu negocio y al menos un servicio creado.
+                </p>
+                <ul className="mt-2 space-y-0.5 text-indigo-100 text-xs">
+                  <li>✓ Sin costo, sin tarjeta de crédito</li>
+                  <li>✓ Solo 1 trial por cuenta</li>
+                  <li>✓ Al vencer, vuelves a FREE automáticamente</li>
+                </ul>
+              </div>
+              <div className="flex flex-col gap-2 flex-shrink-0">
+                <button
+                  onClick={() => handleActivateTrial('PRO')}
+                  disabled={activatingTrial !== null}
+                  className="flex items-center gap-2 bg-white text-indigo-700 font-bold px-4 py-2 rounded-xl hover:bg-indigo-50 transition text-sm disabled:opacity-60"
+                >
+                  {activatingTrial === 'PRO' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
+                  Trial PRO gratis
+                </button>
+                <button
+                  onClick={() => handleActivateTrial('PREMIUM')}
+                  disabled={activatingTrial !== null}
+                  className="flex items-center gap-2 bg-yellow-400 text-yellow-900 font-bold px-4 py-2 rounded-xl hover:bg-yellow-300 transition text-sm disabled:opacity-60"
+                >
+                  {activatingTrial === 'PREMIUM' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  Trial PREMIUM gratis
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Banner trial activo */}
+        {isTrial && daysUntilExpiry !== null && (
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-xl px-4 py-3 border bg-indigo-50 border-indigo-200 text-indigo-800 text-sm">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+              <span>
+                Trial <strong>{currentPlan}</strong> activo — te quedan <strong>{daysUntilExpiry} días</strong>. Suscríbete abajo para continuar cuando venza.
+              </span>
+            </div>
           </div>
         )}
 

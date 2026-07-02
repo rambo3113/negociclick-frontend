@@ -475,6 +475,7 @@ export default function DashboardPage() {
   const [expandedBooking, setExpandedBooking] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [daysUntilExpiry, setDaysUntilExpiry] = useState<number | null>(null);
+  const [isTrial, setIsTrial] = useState(false);
 
   const [editingBiz, setEditingBiz] = useState<Business | null>(null);
   const [editForm, setEditForm] = useState({ name: '', category: '', city: '', address: '', phone: '', email: '', description: '' });
@@ -617,6 +618,7 @@ export default function DashboardPage() {
         setBusinesses(list);
         setSubscription(subRes.data.subscription);
         setDaysUntilExpiry(subRes.data.daysUntilExpiry ?? null);
+        setIsTrial(subRes.data.isTrial ?? false);
         if (list.length > 0) setSelectedBizId(list[0].id);
         if (twoFARes) setTwoFAStatus(twoFARes.data);
       }).catch(() => { setBizLoadError(true); })
@@ -1112,6 +1114,21 @@ export default function DashboardPage() {
             {/* Banner de verificación de email */}
             {user && !user.emailVerified && (
               <EmailVerificationBanner />
+            )}
+
+            {/* Banner trial activo */}
+            {isTrial && daysUntilExpiry !== null && daysUntilExpiry > 7 && (
+              <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3 border bg-indigo-50 border-indigo-200 text-indigo-800 text-sm">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 flex-shrink-0 text-indigo-500" />
+                  <span>
+                    Estás en tu <strong>trial gratuito de {subscription?.plan}</strong> — te quedan <strong>{daysUntilExpiry} días</strong>. Suscríbete antes de que venza para no perder tus beneficios.
+                  </span>
+                </div>
+                <a href="/subscription" className="whitespace-nowrap font-semibold underline underline-offset-2 hover:opacity-80 transition">
+                  Ver planes
+                </a>
+              </div>
             )}
 
             {/* Banner de vencimiento de suscripción */}
