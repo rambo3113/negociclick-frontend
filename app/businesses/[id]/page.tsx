@@ -200,7 +200,7 @@ export default function BusinessDetailPage() {
     const structured = `[PEDIDO] ${lines} | Total: S/ ${cartTotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })} | Entrega: ${deliveryDate || 'A coordinar'} | Dirección: ${deliveryAddress}${orderNotes ? ` | Notas: ${orderNotes}` : ''}`;
     const deliveryISO = deliveryDate ? `${deliveryDate}T12:00:00` : new Date(Date.now() + 86_400_000).toISOString();
     try {
-      const res = await api.post('/bookings', { serviceId: cart[0].service.id, date: deliveryISO, notes: structured, orderTotal: cartTotal });
+      const res = await api.post('/bookings', { serviceId: cart[0].service.id, businessId: business?.id, date: deliveryISO, notes: structured, orderTotal: cartTotal });
       if (business?.ownerPlan === 'PREMIUM') {
         let payRes;
         try {

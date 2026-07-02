@@ -319,7 +319,12 @@ function BookingsContent() {
                     {/* Header */}
                     <div className="flex justify-between items-start mb-3">
                       <div>
-                        <h3 className="font-semibold text-gray-900">{booking.service.name}</h3>
+                        <h3 className="font-semibold text-gray-900">
+                          {(() => {
+                            const multiMatch = booking.notes?.match(/^\[SERVICIOS: (.+?)\]/);
+                            return multiMatch ? multiMatch[1] : booking.service.name;
+                          })()}
+                        </h3>
                         <div className="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
                           <MapPin className="w-3.5 h-3.5" />
                           {booking.business.name} · {booking.business.city}

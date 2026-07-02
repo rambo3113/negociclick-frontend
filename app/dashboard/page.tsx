@@ -1320,10 +1320,21 @@ export default function DashboardPage() {
                                       </div>
                                     ) : (
                                       <div>
-                                        <div className="text-gray-600">{booking.service.name}</div>
-                                        {booking.notes && (
-                                          <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">{booking.notes}</div>
-                                        )}
+                                        {(() => {
+                                          const multiMatch = booking.notes?.match(/^\[SERVICIOS: (.+?)\]/);
+                                          const userNote = booking.notes?.replace(/^\[SERVICIOS: .+?\]\n?/, '') || '';
+                                          return multiMatch ? (
+                                            <>
+                                              <div className="text-gray-600 font-medium">{multiMatch[1]}</div>
+                                              {userNote && <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">{userNote}</div>}
+                                            </>
+                                          ) : (
+                                            <>
+                                              <div className="text-gray-600">{booking.service.name}</div>
+                                              {booking.notes && <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">{booking.notes}</div>}
+                                            </>
+                                          );
+                                        })()}
                                       </div>
                                     )}
                                   </td>
