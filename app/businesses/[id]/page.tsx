@@ -330,6 +330,7 @@ export default function BusinessDetailPage() {
         : notes;
       const bookingRes = await api.post('/bookings', {
         serviceId: selectedServices[0].id,
+        businessId: business?.id,
         date: dateISO,
         notes: bookingNotes,
         ...(isMulti ? { serviceIds: selectedServices.map(s => s.id) } : {}),
