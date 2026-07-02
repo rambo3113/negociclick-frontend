@@ -409,6 +409,7 @@ const resolveUrl = (path?: string | null) => {
 
 interface ParsedOrder {
   isOrder: boolean;
+  isMultiAppointment: boolean;
   items: string;
   total: string;
   deliveryDate: string;
@@ -437,17 +438,24 @@ function parseOrderNotes(notes?: string): ParsedOrder {
     const deliveryDate = (parts.find(p => p.startsWith('Entrega:')) ?? '').slice('Entrega: '.length);
     const address = (parts.find(p => p.startsWith('Dirección:')) ?? '').slice('Dirección: '.length);
     const extraNotes = (parts.find(p => p.startsWith('Notas:')) ?? '').slice('Notas: '.length);
-    return { isOrder: true, items, total, deliveryDate, address, extraNotes };
+    return { isOrder: true, isMultiAppointment: false, items, total, deliveryDate, address, extraNotes };
   }
+  // Reservas con múltiples servicios (formato antiguo) — NO son pedidos de delivery
   if (notes?.startsWith('[MULTI-SERVICIO]')) {
     const body = notes.slice('[MULTI-SERVICIO] '.length);
     const parts = body.split(' | ');
     const items = parts[0] ?? '';
     const total = (parts.find(p => p.startsWith('Total:')) ?? '').slice('Total: '.length);
     const extraNotes = (parts.find(p => p.startsWith('Notas:')) ?? '').slice('Notas: '.length);
-    return { isOrder: true, items, total, deliveryDate: '', address: '', extraNotes };
+    return { isOrder: false, isMultiAppointment: true, items, total, deliveryDate: '', address: '', extraNotes };
   }
-  return { isOrder: false, items: '', total: '', deliveryDate: '', address: '', extraNotes: notes || '' };
+  // Formato nuevo: [SERVICIOS: name1, name2] en notes
+  if (notes?.startsWith('[SERVICIOS:')) {
+    const match = notes.match(/^\[SERVICIOS: (.+?)\]/);
+    const items = match ? match[1] : '';
+    return { isOrder: false, isMultiAppointment: true, items, total: '', deliveryDate: '', address: '', extraNotes: notes.replace(/^\[SERVICIOS: .+?\]\n?/, '') };
+  }
+  return { isOrder: false, isMultiAppointment: false, items: '', total: '', deliveryDate: '', address: '', extraNotes: notes || '' };
 }
 
 export default function DashboardPage() {
@@ -1335,23 +1343,15 @@ export default function DashboardPage() {
                                           {isExpanded ? '▲ Ocultar detalle' : '▼ Ver detalle del pedido'}
                                         </button>
                                       </div>
+                                    ) : order.isMultiAppointment ? (
+                                      <div>
+                                        <div className="text-gray-600 font-medium">{order.items}</div>
+                                        {order.extraNotes && <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">{order.extraNotes}</div>}
+                                      </div>
                                     ) : (
                                       <div>
-                                        {(() => {
-                                          const multiMatch = booking.notes?.match(/^\[SERVICIOS: (.+?)\]/);
-                                          const userNote = booking.notes?.replace(/^\[SERVICIOS: .+?\]\n?/, '') || '';
-                                          return multiMatch ? (
-                                            <>
-                                              <div className="text-gray-600 font-medium">{multiMatch[1]}</div>
-                                              {userNote && <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">{userNote}</div>}
-                                            </>
-                                          ) : (
-                                            <>
-                                              <div className="text-gray-600">{booking.service.name}</div>
-                                              {booking.notes && <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">{booking.notes}</div>}
-                                            </>
-                                          );
-                                        })()}
+                                        <div className="text-gray-600">{booking.service.name}</div>
+                                        {booking.notes && <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">{booking.notes}</div>}
                                       </div>
                                     )}
                                   </td>
@@ -1359,7 +1359,12 @@ export default function DashboardPage() {
                                     {new Date(booking.date).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
                                   </td>
                                   <td className="py-3.5">
-                                    <span className="font-semibold text-green-600">S/ {Number(booking.totalAmount).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                                    <span className="font-semibold text-green-600">
+                                      {order.isMultiAppointment && order.total
+                                        ? order.total
+                                        : `S/ ${Number(booking.totalAmount).toLocaleString('es-PE', { minimumFractionDigits: 2 })}`
+                                      }
+                                    </span>
                                   </td>
                                   <td className="py-3.5">
                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${meta.color}`}>

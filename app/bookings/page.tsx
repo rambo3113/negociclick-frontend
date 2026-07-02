@@ -321,8 +321,15 @@ function BookingsContent() {
                       <div>
                         <h3 className="font-semibold text-gray-900">
                           {(() => {
-                            const multiMatch = booking.notes?.match(/^\[SERVICIOS: (.+?)\]/);
-                            return multiMatch ? multiMatch[1] : booking.service.name;
+                            // Formato nuevo: [SERVICIOS: name1, name2]
+                            const newFmt = booking.notes?.match(/^\[SERVICIOS: (.+?)\]/);
+                            if (newFmt) return newFmt[1];
+                            // Formato antiguo: [MULTI-SERVICIO] name1 (S/X) + name2 (S/X) | Total: ...
+                            if (booking.notes?.startsWith('[MULTI-SERVICIO]')) {
+                              const body = booking.notes.slice('[MULTI-SERVICIO] '.length);
+                              return body.split(' | ')[0] ?? booking.service.name;
+                            }
+                            return booking.service.name;
                           })()}
                         </h3>
                         <div className="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
