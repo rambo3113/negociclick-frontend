@@ -23,7 +23,7 @@ const SECTIONS = [
   },
   {
     num: '08', title: 'Cookies',
-    content: 'Usamos únicamente cookies de sesión necesarias para el funcionamiento de la plataforma. No usamos cookies de seguimiento ni publicidad.',
+    content: 'Usamos cookies de sesión estrictamente necesarias para el funcionamiento de la plataforma (autenticación y preferencias). Adicionalmente, usamos Google Analytics (GA4) para analítica anónima del tráfico — puedes rechazar estas cookies no esenciales desde el banner de cookies que aparece en tu primera visita. No usamos cookies de publicidad personalizada.',
   },
   {
     num: '09', title: 'Cambios a esta política',
@@ -43,13 +43,15 @@ const LIST_SECTIONS: { num: string; title: string; intro?: string; items: string
     ],
   },
   {
-    num: '03', title: 'Finalidad del tratamiento',
+    num: '03', title: 'Finalidad y base legal del tratamiento',
+    intro: 'Tratamos tus datos con las siguientes finalidades y bases legales:',
     items: [
-      'Gestionar tu cuenta y autenticación.',
-      'Procesar y gestionar reservas entre clientes y vendors.',
-      'Enviar notificaciones relacionadas a tus reservas y cuenta.',
-      'Mejorar la plataforma y prevenir fraudes.',
-      'Cumplir con obligaciones legales.',
+      'Gestionar tu cuenta y autenticación — base legal: ejecución del contrato (Art. 13 Ley 29733).',
+      'Procesar y gestionar reservas entre clientes y vendors — base legal: ejecución del contrato.',
+      'Enviar notificaciones relacionadas a tus reservas y cuenta — base legal: ejecución del contrato.',
+      'Mejorar la plataforma y prevenir fraudes — base legal: interés legítimo del responsable.',
+      'Cumplir con obligaciones legales tributarias y regulatorias — base legal: obligación legal.',
+      'Tratamiento de datos de pago a través de Culqi — base legal: ejecución del contrato.',
     ],
   },
   {
@@ -57,21 +59,36 @@ const LIST_SECTIONS: { num: string; title: string; intro?: string; items: string
     intro: 'Compartimos datos únicamente con:',
     items: [
       'Culqi — procesador de pagos (PCI-DSS compliant).',
-      'Neon (PostgreSQL) — almacenamiento de base de datos en servidores en Sudamérica.',
+      'Neon (PostgreSQL) — almacenamiento de base de datos en servidores en Sudamérica (São Paulo, Brasil).',
+      'Cloudinary — almacenamiento de imágenes (fotos de perfil, negocios y servicios) en servidores en EE.UU.',
+      'Vercel — alojamiento del frontend (negociclick.com) en servidores en EE.UU. y Europa.',
+      'Railway — alojamiento del backend API en servidores en EE.UU.',
       'Vendors de NegociClick — reciben nombre y datos de contacto del cliente al confirmar una reserva.',
     ],
     note: 'No vendemos tus datos a terceros.',
   },
   {
-    num: '06', title: 'Tus derechos',
+    num: '06', title: 'Tus derechos (ARCO)',
     intro: 'Conforme a la Ley N° 29733, tienes derecho a:',
     items: [
-      'Acceder a tus datos personales.',
-      'Rectificar datos inexactos.',
-      'Cancelar o eliminar tus datos.',
-      'Oponerte al tratamiento de tus datos.',
+      'Acceso — conocer qué datos personales tenemos sobre ti.',
+      'Rectificación — corregir datos inexactos o incompletos.',
+      'Cancelación — solicitar la eliminación de tus datos cuando ya no sean necesarios.',
+      'Oposición — oponerte al tratamiento de tus datos en determinadas circunstancias.',
     ],
-    note: 'Ejerce tus derechos escribiendo a noreply@negociclick.com.',
+    note: 'Ejerce tus derechos escribiendo a privacidad@negociclick.com. Respondemos en un plazo máximo de 20 días hábiles conforme a la ley.',
+  },
+  {
+    num: '06b', title: 'Transferencias internacionales de datos',
+    intro: 'NegociClick utiliza servicios de terceros que pueden almacenar o procesar tus datos fuera de Perú:',
+    items: [
+      'Vercel Inc. (EE.UU.) — hosting del frontend. Sujeto a sus políticas de privacidad y marcos de adecuación aplicables.',
+      'Railway Corp. (EE.UU.) — hosting del backend API.',
+      'Cloudinary Ltd. (EE.UU.) — almacenamiento de imágenes.',
+      'Neon Inc. (EE.UU./Brasil) — base de datos PostgreSQL.',
+      'Culqi (Perú) — procesador de pagos PCI-DSS, opera bajo regulación SBS de Perú.',
+    ],
+    note: 'Al registrarte en NegociClick, consientes expresamente estas transferencias internacionales, que son necesarias para operar el servicio.',
   },
 ];
 
@@ -134,7 +151,7 @@ export default function PrivacidadPage() {
 
           {/* Contacto */}
           <a
-            href="mailto:noreply@negociclick.com"
+            href="mailto:privacidad@negociclick.com"
             className="group flex items-start gap-4 bg-indigo-50 border border-indigo-100 rounded-2xl p-6 hover:bg-indigo-100 hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
             <span className="text-xs font-black text-indigo-300 group-hover:text-indigo-500 transition-colors mt-0.5 flex-shrink-0 w-6">10</span>
@@ -142,7 +159,7 @@ export default function PrivacidadPage() {
               <h2 className="text-sm font-bold text-indigo-900 mb-1 group-hover:text-indigo-700 transition-colors">Contacto</h2>
               <p className="text-sm text-indigo-600 leading-relaxed">
                 Para consultas sobre privacidad:{' '}
-                <span className="font-semibold underline underline-offset-2">noreply@negociclick.com</span>
+                <span className="font-semibold underline underline-offset-2">privacidad@negociclick.com</span>
               </p>
             </div>
           </a>

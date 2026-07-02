@@ -29,7 +29,7 @@ const ROLE_CONFIG = {
     ],
     stats: [
       { value: '27+',  label: 'Categorías' },
-      { value: '4.8★', label: 'Rating promedio' },
+      { value: '0%',   label: 'Comisión' },
       { value: '100%', label: 'Pago seguro' },
     ],
     btnLabel: 'Crear mi cuenta gratis',
@@ -95,6 +95,7 @@ function RegisterPageContent() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState({ name: false, email: false, phone: false, password: false });
+  const [consent, setConsent] = useState(false);
 
   const cfg = ROLE_CONFIG[form.role];
 
@@ -398,10 +399,27 @@ function RegisterPageContent() {
                 )}
               </div>
 
+              {/* Consent — Ley 29733 */}
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={e => setConsent(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 accent-indigo-600 flex-shrink-0"
+                />
+                <span className="text-xs text-gray-500 leading-relaxed">
+                  He leído y acepto los{' '}
+                  <Link href="/terminos" className="text-indigo-500 hover:underline">Términos y Condiciones</Link>
+                  {' '}y la{' '}
+                  <Link href="/privacidad" className="text-indigo-500 hover:underline">Política de Privacidad</Link>
+                  . Autorizo el tratamiento de mis datos personales conforme a la Ley N° 29733.
+                </span>
+              </label>
+
               {/* Submit */}
               <button
                 type="submit"
-                disabled={loading || (form.password.length > 0 && !passwordValid)}
+                disabled={loading || !consent || (form.password.length > 0 && !passwordValid)}
                 className={`w-full bg-gradient-to-r ${cfg.btnColor} text-white py-3.5 rounded-xl font-bold text-sm hover:shadow-lg hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none flex items-center justify-center gap-2 mt-1`}
               >
                 {loading
@@ -426,13 +444,6 @@ function RegisterPageContent() {
             </Link>
           </div>
 
-          {/* Legal */}
-          <p className="text-center text-xs text-gray-400 mt-5 px-2">
-            Al crear tu cuenta aceptas los{' '}
-            <Link href="/terminos" className="text-indigo-500 hover:underline">Términos y Condiciones</Link>
-            {' '}y la{' '}
-            <Link href="/privacidad" className="text-indigo-500 hover:underline">Política de Privacidad</Link>.
-          </p>
         </div>
       </div>
     </div>

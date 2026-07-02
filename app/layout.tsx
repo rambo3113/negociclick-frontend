@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import { ToastProvider } from "@/components/Toast";
 import ChatWidget from "@/components/ChatWidget";
-
-const GA_ID = 'G-F2Q5BPY76D';
+import CookieBanner from "@/components/CookieBanner";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -49,20 +47,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className="h-full">
-      <head>
-        <Script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
-        <Script id="google-analytics" strategy="afterInteractive">{`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${GA_ID}');
-        `}</Script>
-      </head>
       <body className={`${geist.className} min-h-full flex flex-col bg-gray-50`}>
         <AuthProvider>
           <ToastProvider>
             {children}
             <ChatWidget />
+            <CookieBanner />
           </ToastProvider>
         </AuthProvider>
       </body>

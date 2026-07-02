@@ -378,7 +378,7 @@ export default function HomePage() {
             {[
               { value: '27+',                                    label: 'Categorías',         sub: 'de servicios' },
               { value: total > 0 ? `${total}+` : '100+',        label: 'Negocios activos',   sub: 'verificados' },
-              { value: '4.8★',                                   label: 'Calificación',       sub: 'promedio' },
+              { value: '0%',                                     label: 'Comisión',           sub: 'por reserva' },
               { value: '100%',                                   label: 'Pago seguro',        sub: 'con Culqi' },
             ].map((s, i) => (
               <div key={s.label} className={`flex-1 text-center ${i > 0 ? 'border-l border-white/10' : ''}`}>
@@ -398,12 +398,12 @@ export default function HomePage() {
               Publica tu negocio gratis
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
             </Link>
-            <Link
-              href="/register"
+            <a
+              href="#main-content"
               className="inline-flex items-center gap-2 px-6 py-3 min-h-[48px] bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-semibold rounded-xl hover:bg-white/20 hover:border-white/35 active:scale-95 transition-all duration-200"
             >
               Buscar servicios →
-            </Link>
+            </a>
           </div>
 
           {/* Plan cards */}
@@ -888,7 +888,7 @@ export default function HomePage() {
             <span className="bg-gradient-to-r from-indigo-300 to-pink-300 bg-clip-text text-transparent">por no tener reservas online</span>
           </h2>
           <p className="text-white/60 mb-6 max-w-lg mx-auto text-sm leading-relaxed">
-            El 73% de los clientes prefiere reservar online antes de llamar. Publica tu negocio gratis y empieza a recibir citas hoy mismo.
+            Tus clientes reservan desde el celular, a cualquier hora, sin llamadas ni WhatsApp. Publica tu negocio gratis y empieza a recibir citas hoy mismo.
           </p>
           {/* Trial badge */}
           <Link href="/para-negocios" className="inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 text-xs font-bold px-4 py-2 rounded-full mb-8 hover:bg-yellow-400/20 transition">
