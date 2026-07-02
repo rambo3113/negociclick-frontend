@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import api from '@/lib/api';
 import Logo from '@/components/Logo';
 import {
   Eye, EyeOff, AlertCircle, ArrowRight,
@@ -78,11 +79,16 @@ function RegisterPageContent() {
     name: '', email: '', password: '', phone: '', role: 'CLIENT',
   });
 
-  // Pre-seleccionar rol si viene del link del login (?role=VENDOR)
+  // Pre-seleccionar rol y leer trial param
+  const trialPlan = searchParams.get('trial'); // 'PRO' | 'PREMIUM' | null
   useEffect(() => {
     const roleParam = searchParams.get('role');
     if (roleParam === 'VENDOR' || roleParam === 'CLIENT') {
       setForm(f => ({ ...f, role: roleParam }));
+    }
+    // Si viene con trial, forzar rol VENDOR
+    if (searchParams.get('trial')) {
+      setForm(f => ({ ...f, role: 'VENDOR' }));
     }
   }, [searchParams]);
   const [showPwd, setShowPwd] = useState(false);
@@ -117,7 +123,13 @@ function RegisterPageContent() {
     setLoading(true);
     try {
       await register(form);
-      router.push(form.role === 'VENDOR' ? '/dashboard' : '/');
+      // Si viene con trial, activarlo antes de redirigir
+      if (form.role === 'VENDOR' && trialPlan && ['PRO', 'PREMIUM'].includes(trialPlan)) {
+        try { await api.post('/subscriptions/trial', { plan: trialPlan }); } catch { /* si falla, igual van al dashboard */ }
+        router.push('/dashboard?trial=activated');
+      } else {
+        router.push(form.role === 'VENDOR' ? '/dashboard' : '/');
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Error al registrarse');
     } finally {

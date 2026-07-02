@@ -47,7 +47,7 @@ const PLANS = [
     iconBg: 'bg-indigo-100 text-indigo-600',
     badge: '⭐ Más popular',
     features: ['Todo lo de Free', 'Hasta 15 servicios', 'Agenda diaria', 'Analíticas avanzadas', 'Marcar pagado en efectivo', 'Soporte prioritario'],
-    cta: { label: 'Probar PRO 14 días gratis', href: '/register?role=VENDOR', style: 'bg-indigo-600 text-white hover:bg-indigo-700' },
+    cta: { label: 'Probar PRO 14 días gratis', href: '/register?role=VENDOR&trial=PRO', style: 'bg-indigo-600 text-white hover:bg-indigo-700' },
     trial: true,
   },
   {
@@ -59,7 +59,7 @@ const PLANS = [
     color: 'border-purple-400',
     iconBg: 'bg-purple-100 text-purple-600',
     features: ['Todo lo de Pro', 'Servicios ilimitados', 'Cobro online con Culqi', 'Negocio destacado', 'Múltiples servicios por reserva'],
-    cta: { label: 'Probar PREMIUM 14 días gratis', href: '/register?role=VENDOR', style: 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:opacity-90' },
+    cta: { label: 'Probar PREMIUM 14 días gratis', href: '/register?role=VENDOR&trial=PREMIUM', style: 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:opacity-90' },
     trial: true,
   },
 ];
