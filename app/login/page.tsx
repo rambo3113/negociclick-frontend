@@ -90,6 +90,7 @@ export default function LoginPage() {
   const [twoFactorMode, setTwoFactorMode] = useState(false);
   const [tempToken, setTempToken] = useState('');
   const [totpCode, setTotpCode] = useState('');
+  const [backupMode, setBackupMode] = useState(false);
 
   const cfg = ROLE_CONFIG[role];
 
@@ -113,8 +114,9 @@ export default function LoginPage() {
     }
   };
 
-  const handle2FASubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
+  const handle2FASubmit = async (e?: React.SyntheticEvent) => {
+    e?.preventDefault();
+    if (!totpCode || (backupMode ? totpCode.length < 8 : totpCode.length < 6)) return;
     setError('');
     setLoading(true);
     try {
@@ -125,7 +127,16 @@ export default function LoginPage() {
       completeLogin(token, refreshToken, user);
       router.push(role === 'VENDOR' ? '/dashboard' : '/');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Código incorrecto. Intenta de nuevo.');
+      const msg: string = err.response?.data?.error || 'Código incorrecto. Intenta de nuevo.';
+      // Token expirado → volver al paso 1
+      if (msg.toLowerCase().includes('expirado') || msg.toLowerCase().includes('inválido')) {
+        setTwoFactorMode(false);
+        setTotpCode('');
+        setBackupMode(false);
+        setError('Tu sesión de verificación expiró (5 min). Inicia sesión nuevamente.');
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -237,30 +248,42 @@ export default function LoginPage() {
                     <Smartphone className="w-6 h-6 text-indigo-600" />
                   </div>
                   <p className="text-sm text-gray-600 leading-snug">
-                    Ingresa el código de 6 dígitos de tu autenticador<br />
-                    o un código de respaldo de 8 caracteres.
+                    {backupMode
+                      ? <>Ingresa uno de tus <strong>códigos de respaldo</strong> de 8 caracteres.</>
+                      : <>Ingresa el <strong>código de 6 dígitos</strong> de tu app autenticadora.</>
+                    }
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    Código de verificación
+                    {backupMode ? 'Código de respaldo' : 'Código de verificación'}
                   </label>
                   <input
                     type="text"
                     value={totpCode}
-                    onChange={e => setTotpCode(e.target.value.replace(/\s/g, ''))}
+                    onChange={e => {
+                      const val = backupMode
+                        ? e.target.value.toUpperCase().replace(/[^A-F0-9]/g, '').slice(0, 8)
+                        : e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setTotpCode(val);
+                      // Auto-submit TOTP at 6 digits
+                      if (!backupMode && val.length === 6) {
+                        setTimeout(() => handle2FASubmit(), 0);
+                      }
+                    }}
                     required
-                    autoComplete="one-time-code"
-                    placeholder="000000"
-                    maxLength={8}
+                    autoFocus
+                    autoComplete={backupMode ? 'off' : 'one-time-code'}
+                    placeholder={backupMode ? 'A1B2C3D4' : '000000'}
+                    maxLength={backupMode ? 8 : 6}
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-center text-2xl font-mono tracking-widest text-gray-900 bg-gray-50 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  disabled={loading || totpCode.length < 6}
+                  disabled={loading || (backupMode ? totpCode.length < 8 : totpCode.length < 6)}
                   className={`w-full bg-gradient-to-r ${cfg.btnColor} text-white py-3.5 rounded-xl font-bold text-sm hover:opacity-90 hover:shadow-lg ${cfg.btnShadow} hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none flex items-center justify-center gap-2`}
                 >
                   {loading
@@ -271,7 +294,15 @@ export default function LoginPage() {
 
                 <button
                   type="button"
-                  onClick={() => { setTwoFactorMode(false); setTotpCode(''); setError(''); }}
+                  onClick={() => { setBackupMode(m => !m); setTotpCode(''); setError(''); }}
+                  className="w-full text-center text-xs text-indigo-500 hover:text-indigo-700 transition-colors font-medium"
+                >
+                  {backupMode ? '← Usar código del autenticador' : 'Usar un código de respaldo'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setTwoFactorMode(false); setTotpCode(''); setBackupMode(false); setError(''); }}
                   className="w-full text-center text-sm text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   ← Volver al inicio de sesión

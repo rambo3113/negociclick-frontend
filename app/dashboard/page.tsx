@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 import FeaturedSection from '@/components/FeaturedSection';
+import TwoFACard from '@/components/TwoFACard';
 
 interface Subscription { plan: string; commissionRate: number; endDate?: string | null; }
 
@@ -558,13 +559,6 @@ export default function DashboardPage() {
   // Onboarding dismissal
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
 
-  // 2FA
-  const [twoFAStatus, setTwoFAStatus] = useState<{ twoFactorEnabled: boolean; backupCodesRemaining: number } | null>(null);
-  const [twoFALoading, setTwoFALoading] = useState(false);
-  const [twoFASetup, setTwoFASetup] = useState<{ secret: string; qrCode: string; backupCodes: string[] } | null>(null);
-  const [twoFACode, setTwoFACode] = useState('');
-  const [twoFADisablePassword, setTwoFADisablePassword] = useState('');
-  const [twoFAStep, setTwoFAStep] = useState<'idle' | 'setup' | 'confirm' | 'disable'>('idle');
 
   const toast = useToast();
 
@@ -620,15 +614,13 @@ export default function DashboardPage() {
       Promise.all([
         api.get('/businesses/my'),
         api.get('/subscriptions/my').catch(() => ({ data: { subscription: null } })),
-        api.get('/auth/2fa/status').catch(() => null),
-      ]).then(([bizRes, subRes, twoFARes]) => {
+      ]).then(([bizRes, subRes]) => {
         const list: Business[] = bizRes.data.businesses || [];
         setBusinesses(list);
         setSubscription(subRes.data.subscription);
         setDaysUntilExpiry(subRes.data.daysUntilExpiry ?? null);
         setIsTrial(subRes.data.isTrial ?? false);
         if (list.length > 0) setSelectedBizId(list[0].id);
-        if (twoFARes) setTwoFAStatus(twoFARes.data);
       }).catch(() => { setBizLoadError(true); })
       .finally(() => setLoading(false));
     }
@@ -882,56 +874,6 @@ export default function DashboardPage() {
       toast.show('Error al eliminar bloqueo', 'error');
     } finally {
       setDeletingBlock(null);
-    }
-  };
-
-  const handle2FASetup = async () => {
-    setTwoFALoading(true);
-    try {
-      const res = await api.post('/auth/2fa/setup');
-      setTwoFASetup(res.data);
-      setTwoFAStep('setup');
-    } catch {
-      toast.show('Error al iniciar configuración 2FA', 'error');
-    } finally {
-      setTwoFALoading(false);
-    }
-  };
-
-  const handle2FAEnable = async () => {
-    if (!twoFASetup || !/^\d{6}$/.test(twoFACode)) return;
-    setTwoFALoading(true);
-    try {
-      await api.post('/auth/2fa/enable', {
-        secret: twoFASetup.secret,
-        totp: twoFACode,
-        backupCodes: twoFASetup.backupCodes,
-      });
-      setTwoFAStatus({ twoFactorEnabled: true, backupCodesRemaining: twoFASetup.backupCodes.length });
-      setTwoFAStep('idle');
-      setTwoFASetup(null);
-      setTwoFACode('');
-      toast.show('2FA habilitado correctamente', 'success');
-    } catch (err: any) {
-      toast.show(err.response?.data?.error || 'Código incorrecto', 'error');
-    } finally {
-      setTwoFALoading(false);
-    }
-  };
-
-  const handle2FADisable = async () => {
-    if (!twoFADisablePassword) return;
-    setTwoFALoading(true);
-    try {
-      await api.post('/auth/2fa/disable', { password: twoFADisablePassword });
-      setTwoFAStatus({ twoFactorEnabled: false, backupCodesRemaining: 0 });
-      setTwoFAStep('idle');
-      setTwoFADisablePassword('');
-      toast.show('2FA deshabilitado', 'info');
-    } catch (err: any) {
-      toast.show(err.response?.data?.error || 'Contraseña incorrecta', 'error');
-    } finally {
-      setTwoFALoading(false);
     }
   };
 
@@ -2495,120 +2437,7 @@ export default function DashboardPage() {
 
                       {/* ── Seguridad: 2FA ── */}
                       <div className="border-t border-gray-100 pt-6 mt-2">
-                        <h3 className="font-semibold text-gray-900 mb-1">Autenticación en dos pasos (2FA)</h3>
-                        <p className="text-sm text-gray-500 mb-4">
-                          Protege tu cuenta con Google Authenticator, Authy o Microsoft Authenticator.
-                        </p>
-
-                        {twoFAStep === 'idle' && (
-                          twoFAStatus?.twoFactorEnabled ? (
-                            <div className="space-y-3">
-                              <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-                                <BadgeCheck className="w-5 h-5 text-green-600 flex-shrink-0" />
-                                <div>
-                                  <p className="text-sm font-semibold text-green-800">2FA activo</p>
-                                  <p className="text-xs text-green-600">{twoFAStatus.backupCodesRemaining} códigos de respaldo restantes</p>
-                                </div>
-                              </div>
-                              <button
-                                onClick={() => setTwoFAStep('disable')}
-                                className="text-sm text-red-500 hover:text-red-700 font-medium transition-colors"
-                              >
-                                Deshabilitar 2FA
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={handle2FASetup}
-                              disabled={twoFALoading}
-                              className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-indigo-700 transition disabled:opacity-60"
-                            >
-                              {twoFALoading
-                                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                : <Lock className="w-4 h-4" />}
-                              Activar 2FA
-                            </button>
-                          )
-                        )}
-
-                        {twoFAStep === 'setup' && twoFASetup && (
-                          <div className="space-y-4">
-                            <p className="text-sm text-gray-600">
-                              1. Escanea este QR con tu app autenticadora.
-                            </p>
-                            <img src={twoFASetup.qrCode} alt="QR 2FA" className="w-48 h-48 rounded-xl border border-gray-200" />
-                            <p className="text-xs text-gray-400">O copia el código manualmente: <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-700 select-all">{twoFASetup.secret}</span></p>
-
-                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                              <p className="text-xs font-semibold text-amber-800 mb-2">Códigos de respaldo — guárdalos ya, no se mostrarán de nuevo:</p>
-                              <div className="grid grid-cols-2 gap-1">
-                                {twoFASetup.backupCodes.map(c => (
-                                  <span key={c} className="font-mono text-xs bg-white border border-amber-200 rounded px-2 py-1 text-center">{c}</span>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                2. Ingresa el código de 6 dígitos para confirmar
-                              </label>
-                              <input
-                                type="text"
-                                value={twoFACode}
-                                onChange={e => setTwoFACode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                placeholder="000000"
-                                maxLength={6}
-                                className="w-40 border border-gray-200 rounded-xl px-4 py-2.5 text-center text-xl font-mono tracking-widest bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
-                              />
-                            </div>
-
-                            <div className="flex gap-3">
-                              <button
-                                onClick={handle2FAEnable}
-                                disabled={twoFALoading || twoFACode.length < 6}
-                                className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-indigo-700 transition disabled:opacity-50"
-                              >
-                                {twoFALoading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
-                                Confirmar y activar
-                              </button>
-                              <button
-                                onClick={() => { setTwoFAStep('idle'); setTwoFASetup(null); setTwoFACode(''); }}
-                                className="px-5 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
-                              >
-                                Cancelar
-                              </button>
-                            </div>
-                          </div>
-                        )}
-
-                        {twoFAStep === 'disable' && (
-                          <div className="space-y-3 max-w-xs">
-                            <p className="text-sm text-gray-600">Confirma tu contraseña para deshabilitar 2FA.</p>
-                            <input
-                              type="password"
-                              value={twoFADisablePassword}
-                              onChange={e => setTwoFADisablePassword(e.target.value)}
-                              placeholder="Tu contraseña"
-                              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-400 focus:bg-white transition"
-                            />
-                            <div className="flex gap-3">
-                              <button
-                                onClick={handle2FADisable}
-                                disabled={twoFALoading || !twoFADisablePassword}
-                                className="flex items-center gap-2 bg-red-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-red-600 transition disabled:opacity-50"
-                              >
-                                {twoFALoading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
-                                Deshabilitar
-                              </button>
-                              <button
-                                onClick={() => { setTwoFAStep('idle'); setTwoFADisablePassword(''); }}
-                                className="px-5 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
-                              >
-                                Cancelar
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                        <TwoFACard />
                       </div>
                     </div>
                   )}

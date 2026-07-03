@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import { useAuth } from '@/lib/auth';
 import api from '@/lib/api';
 import { useToast } from '@/components/Toast';
+import TwoFACard from '@/components/TwoFACard';
 import { User, Mail, Phone, Shield, Pencil, Save, Lock, Eye, EyeOff, Calendar, X, Loader2 } from 'lucide-react';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -251,6 +252,9 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+
+        {/* 2FA */}
+        <TwoFACard />
 
         {/* Acciones */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col sm:flex-row gap-3">
