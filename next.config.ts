@@ -16,7 +16,7 @@ const securityHeaders = [
       "img-src 'self' data: blob: https://res.cloudinary.com https://www.google-analytics.com",
       "font-src 'self' data:",
       "connect-src 'self' https://api.negociclick.com https://www.google-analytics.com https://region1.google-analytics.com",
-      "frame-src 'none'",
+      "frame-src https://www.google.com https://maps.google.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
