@@ -43,6 +43,7 @@ interface Business {
   id: string;
   name: string;
   category: string;
+  orderMode?: 'APPOINTMENT' | 'ORDER';
   city: string;
   address: string;
   phone: string;
@@ -157,7 +158,10 @@ export default function BusinessDetailPage() {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderError, setOrderError] = useState('');
 
-  const isOrderCategory = business ? ORDER_CATEGORIES.has(business.category) : false;
+  // orderMode viene del backend; se usa la categoría solo como fallback si aún no llega
+  const isOrderCategory = business
+    ? (business.orderMode ? business.orderMode === 'ORDER' : ORDER_CATEGORIES.has(business.category))
+    : false;
   const cartTotal = parseFloat(cart.reduce((s, i) => s + Number(i.service.price) * i.quantity, 0).toFixed(2));
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
   const appointmentTotal = parseFloat(selectedServices.reduce((s, sv) => s + Number(sv.price), 0).toFixed(2));
@@ -192,15 +196,32 @@ export default function BusinessDetailPage() {
     if (!user) { router.push('/login'); return; }
     if (cart.length === 0) return;
     if (!deliveryAddress.trim()) { setOrderError('Ingresa una dirección de entrega.'); return; }
+    if (deliveryDate) {
+      const today = new Date().toISOString().slice(0, 10);
+      if (deliveryDate < today) {
+        setOrderError('La fecha de entrega no puede ser anterior a hoy.');
+        return;
+      }
+    }
     setOrderLoading(true);
     setOrderError('');
     const lines = cart.map(i =>
       `${i.quantity}x ${i.service.name} (S/ ${(Number(i.service.price) * i.quantity).toLocaleString('es-PE', { minimumFractionDigits: 2 })})`
     ).join(' + ');
     const structured = `[PEDIDO] ${lines} | Total: S/ ${cartTotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })} | Entrega: ${deliveryDate || 'A coordinar'} | Dirección: ${deliveryAddress}${orderNotes ? ` | Notas: ${orderNotes}` : ''}`;
-    const deliveryISO = deliveryDate ? `${deliveryDate}T12:00:00` : new Date(Date.now() + 86_400_000).toISOString();
+    const now = new Date();
+    const deliveryISO = deliveryDate
+      ? `${deliveryDate}T${deliveryDate === now.toISOString().slice(0, 10) ? now.toTimeString().slice(0, 8) : '12:00:00'}`
+      : now.toISOString();
     try {
-      const res = await api.post('/bookings', { serviceId: cart[0].service.id, businessId: business?.id, date: deliveryISO, notes: structured, orderTotal: cartTotal });
+      const res = await api.post('/bookings', {
+        serviceId: cart[0].service.id,
+        businessId: business?.id,
+        date: deliveryISO,
+        notes: structured,
+        orderTotal: cartTotal,
+        deliveryAddress,
+      });
       if (business?.ownerPlan === 'PREMIUM') {
         let payRes;
         try {

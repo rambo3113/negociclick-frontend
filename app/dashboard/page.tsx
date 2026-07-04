@@ -24,6 +24,7 @@ interface Business {
   id: string; name: string; category: string; city: string;
   address: string; phone: string; email?: string; description?: string;
   slogan?: string; coverImage?: string;
+  orderMode?: 'APPOINTMENT' | 'ORDER';
   isActive: boolean; averageRating?: number | null; totalReviews?: number;
   services: Service[]; _count?: { bookings: number };
 }
@@ -67,6 +68,8 @@ const STATUS_META: Record<string, { label: string; color: string; dot: string }>
   CONFIRMED: { label: 'Confirmada', color: 'bg-blue-100 text-blue-700',    dot: 'bg-blue-500' },
   COMPLETED: { label: 'Completada', color: 'bg-green-100 text-green-700',  dot: 'bg-green-500' },
   CANCELLED: { label: 'Cancelada',  color: 'bg-red-100 text-red-700',      dot: 'bg-red-400' },
+  PREPARING: { label: 'Preparando', color: 'bg-blue-100 text-blue-700',    dot: 'bg-blue-500' },
+  DELIVERED: { label: 'Entregado',  color: 'bg-green-100 text-green-700',  dot: 'bg-green-500' },
 };
 
 const DAYS_ES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -1319,16 +1322,16 @@ export default function DashboardPage() {
                                       /* ── Acciones para PEDIDOS ── */
                                       <div className="flex flex-col gap-1.5">
                                         {booking.status === 'PENDING' && (
-                                          <button onClick={() => handleStatusChange(booking.id, 'CONFIRMED')} disabled={isUpdating}
+                                          <button onClick={() => handleStatusChange(booking.id, 'PREPARING')} disabled={isUpdating}
                                             className="inline-flex items-center gap-1 text-xs px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 disabled:opacity-50 transition font-medium">
-                                            <Check className="w-3 h-3" />{isUpdating ? 'Actualizando...' : 'Confirmar'}
+                                            <Check className="w-3 h-3" />{isUpdating ? 'Actualizando...' : 'Preparar'}
                                           </button>
                                         )}
-                                        {booking.status === 'CONFIRMED' && (
+                                        {booking.status === 'PREPARING' && (
                                           isPremium
-                                            ? <button onClick={() => handleStatusChange(booking.id, 'COMPLETED')} disabled={isUpdating}
+                                            ? <button onClick={() => handleStatusChange(booking.id, 'DELIVERED')} disabled={isUpdating}
                                                 className="inline-flex items-center gap-1 text-xs px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 disabled:opacity-50 transition font-medium">
-                                                <Check className="w-3 h-3" />{isUpdating ? 'Actualizando...' : 'Completar'}
+                                                <Check className="w-3 h-3" />{isUpdating ? 'Actualizando...' : 'Entregado'}
                                               </button>
                                             : <button onClick={() => handleMarkPaid(booking.id)} disabled={markingPaid === booking.id}
                                                 className="inline-flex items-center gap-1 text-xs px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 disabled:opacity-50 transition font-medium">
@@ -1341,7 +1344,7 @@ export default function DashboardPage() {
                                         >
                                           <Mail className="w-3 h-3" /> Contactar
                                         </a>
-                                        {booking.status === 'COMPLETED' && (
+                                        {(booking.status === 'DELIVERED' || booking.status === 'COMPLETED') && (
                                           <button
                                             onClick={() => {
                                               const bizName = businesses.find(b => b.id === selectedBizId)?.name ?? 'NegociClick';
