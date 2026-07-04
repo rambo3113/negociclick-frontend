@@ -1436,7 +1436,7 @@ export default function DashboardPage() {
                                           {order.deliveryDate && order.deliveryDate !== 'A coordinar' && (
                                             <div>
                                               <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-0.5">Fecha de entrega</p>
-                                              <p className="text-gray-700">📅 {new Date(order.deliveryDate).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                                              <p className="text-gray-700">📅 {new Date(booking.date).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                                             </div>
                                           )}
                                           {order.deliveryDate === 'A coordinar' && (
