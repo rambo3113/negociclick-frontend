@@ -669,6 +669,10 @@ export default function DashboardPage() {
     }
   };
 
+  const handleStatusChangeConfirm = (bookingId: string, status: string, message: string) => {
+    if (window.confirm(message)) handleStatusChange(bookingId, status);
+  };
+
   const handleAddService = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!selectedBizId) return;
@@ -1342,11 +1346,21 @@ export default function DashboardPage() {
                                             <Check className="w-3 h-3" />{isUpdating ? 'Actualizando...' : 'Preparar'}
                                           </button>
                                         )}
+                                        {booking.status === 'CONFIRMED' && (
+                                          <button
+                                            onClick={() => handleStatusChangeConfirm(booking.id, 'PREPARING', '¿Iniciar la preparación de este pedido?')}
+                                            disabled={isUpdating}
+                                            className="inline-flex items-center gap-1 text-xs px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 disabled:opacity-50 transition font-medium">
+                                            <Check className="w-3 h-3" />{isUpdating ? 'Actualizando...' : 'Iniciar preparación'}
+                                          </button>
+                                        )}
                                         {booking.status === 'PREPARING' && (
                                           isPremium
-                                            ? <button onClick={() => handleStatusChange(booking.id, 'DELIVERED')} disabled={isUpdating}
+                                            ? <button
+                                                onClick={() => handleStatusChangeConfirm(booking.id, 'DELIVERED', '¿Marcar este pedido como entregado?')}
+                                                disabled={isUpdating}
                                                 className="inline-flex items-center gap-1 text-xs px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 disabled:opacity-50 transition font-medium">
-                                                <Check className="w-3 h-3" />{isUpdating ? 'Actualizando...' : 'Entregado'}
+                                                <Check className="w-3 h-3" />{isUpdating ? 'Actualizando...' : 'Marcar entregado'}
                                               </button>
                                             : <button onClick={() => handleMarkPaid(booking.id)} disabled={markingPaid === booking.id}
                                                 className="inline-flex items-center gap-1 text-xs px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 disabled:opacity-50 transition font-medium">
