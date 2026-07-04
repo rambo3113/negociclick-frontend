@@ -19,6 +19,11 @@ const resolveUrl = (path?: string | null) => {
 
 const ORDER_CATEGORIES = new Set(['FLORES', 'REPOSTERIA', 'TEJIDOS_CROCHET', 'CATERING', 'DECORACION_EVENTOS']);
 
+// "Hoy" en fecha calendario de Lima (UTC-5), no en UTC — evita que las horas de
+// la noche en Perú (que ya son "mañana" en UTC) corran la validación/fecha un día.
+const getLimaDateString = (d: Date = new Date()) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' }).format(d);
+
 interface CartItem { service: Service; quantity: number; }
 
 interface Service {
@@ -197,7 +202,7 @@ export default function BusinessDetailPage() {
     if (cart.length === 0) return;
     if (!deliveryAddress.trim()) { setOrderError('Ingresa una dirección de entrega.'); return; }
     if (deliveryDate) {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getLimaDateString();
       if (deliveryDate < today) {
         setOrderError('La fecha de entrega no puede ser anterior a hoy.');
         return;
@@ -209,10 +214,11 @@ export default function BusinessDetailPage() {
       `${i.quantity}x ${i.service.name} (S/ ${(Number(i.service.price) * i.quantity).toLocaleString('es-PE', { minimumFractionDigits: 2 })})`
     ).join(' + ');
     const structured = `[PEDIDO] ${lines} | Total: S/ ${cartTotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })} | Entrega: ${deliveryDate || 'A coordinar'} | Dirección: ${deliveryAddress}${orderNotes ? ` | Notas: ${orderNotes}` : ''}`;
-    const now = new Date();
+    // Mediodía Lima con offset explícito (-05:00): un instante inequívoco sea cual sea
+    // la zona horaria del navegador o del servidor que lo parsee — nunca se corre de día.
     const deliveryISO = deliveryDate
-      ? `${deliveryDate}T${deliveryDate === now.toISOString().slice(0, 10) ? now.toTimeString().slice(0, 8) : '12:00:00'}`
-      : now.toISOString();
+      ? `${deliveryDate}T12:00:00-05:00`
+      : new Date().toISOString();
     try {
       const res = await api.post('/bookings', {
         serviceId: cart[0].service.id,
@@ -1056,7 +1062,7 @@ export default function BusinessDetailPage() {
                         type="date"
                         value={deliveryDate}
                         onChange={e => setDeliveryDate(e.target.value)}
-                        min={new Date().toISOString().slice(0, 10)}
+                        min={getLimaDateString()}
                         className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
                       />
                     </div>

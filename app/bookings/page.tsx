@@ -9,6 +9,11 @@ import { useToast } from '@/components/Toast';
 import { Calendar, MapPin, Clock, CheckCircle, Star, X, Send, Loader2, RefreshCw, CreditCard, AlertTriangle } from 'lucide-react';
 import CulqiPaymentModal from '@/components/CulqiPaymentModal';
 
+// "Hoy" en fecha calendario de Lima (UTC-5), no en UTC — evita que la noche en Perú
+// (ya "mañana" en UTC) corra la fecha mínima seleccionable un día.
+const getLimaDateString = (d: Date = new Date()) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' }).format(d);
+
 // Decodifica entidades HTML básicas guardadas por versiones antiguas del backend
 function decodeHtml(s: string): string {
   return s
@@ -171,7 +176,9 @@ function BookingsContent() {
 
   const buildRescheduleISO = (isOrder: boolean) => {
     if (!rescheduleDate) return '';
-    if (isOrder) return `${rescheduleDate}T12:00:00`;
+    // Mediodía Lima con offset explícito: instante inequívoco sin importar la zona
+    // horaria del servidor que lo parsee (evita que la fecha se corra un día).
+    if (isOrder) return `${rescheduleDate}T12:00:00-05:00`;
     let h = parseInt(rescheduleHour);
     if (rescheduleAmPm === 'PM' && h !== 12) h += 12;
     if (rescheduleAmPm === 'AM' && h === 12) h = 0;
@@ -595,7 +602,7 @@ function BookingsContent() {
                           type="date"
                           value={rescheduleDate}
                           onChange={e => setRescheduleDate(e.target.value)}
-                          min={new Date().toISOString().slice(0, 10)}
+                          min={getLimaDateString()}
                           className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                         {!isOrder && <div className="flex items-center gap-2">
