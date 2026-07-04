@@ -530,12 +530,13 @@ export default function DashboardPage() {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   const loadAnalytics = useCallback((bizId: string) => {
-    setAnalyticsLoading(true);
+    const key = `analytics:${bizId}`;
+    if (!fetched(key)) setAnalyticsLoading(true);
     api.get(`/businesses/${bizId}/analytics`)
-      .then(res => setAnalyticsData(res.data.analytics))
-      .catch(() => setAnalyticsData(null))
+      .then(res => { setAnalyticsData(res.data.analytics); markFetched(key); })
+      .catch(() => { toast.show('No se pudo actualizar las analíticas', 'error'); })
       .finally(() => setAnalyticsLoading(false));
-  }, []);
+  }, []); // eslint-disable-line
 
   // Agenda / bloqueo de disponibilidad
   const [availBlocks, setAvailBlocks] = useState<AvailabilityBlock[]>([]);
@@ -573,8 +574,15 @@ export default function DashboardPage() {
 
   const toast = useToast();
 
-  const loadBookings = useCallback((bizId: string) => {
-    setBookingsLoading(true);
+  // Tracks which (tab, bizId) combos have been fetched this session — prevents
+  // a full spinner when revisiting a tab that already has data in state.
+  const fetchedRef = useRef<Set<string>>(new Set());
+  const fetched = (key: string) => fetchedRef.current.has(key);
+  const markFetched = (key: string) => fetchedRef.current.add(key);
+
+  const loadBookings = useCallback((bizId: string, silent = false) => {
+    const key = `bookings:${bizId}`;
+    if (!silent && !fetched(key)) setBookingsLoading(true);
     Promise.all([
       api.get(`/bookings/business/${bizId}`),
       api.get(`/bookings/business/${bizId}/earnings?period=all`),
@@ -582,21 +590,24 @@ export default function DashboardPage() {
       .then(([bookRes, earnRes]) => {
         setBookings(bookRes.data.bookings || []);
         setEarnings(earnRes.data);
+        markFetched(key);
       })
-      .catch(() => { setBookings([]); })
+      .catch(() => { toast.show('No se pudo actualizar las reservas', 'error'); })
       .finally(() => setBookingsLoading(false));
-  }, []);
+  }, []); // eslint-disable-line
 
   const loadServices = useCallback((bizId: string) => {
-    setServicesLoading(true);
+    const key = `services:${bizId}`;
+    if (!fetched(key)) setServicesLoading(true);
     api.get(`/services/business/${bizId}`)
-      .then(res => setServices(res.data.services || []))
-      .catch(() => setServices([]))
+      .then(res => { setServices(res.data.services || []); markFetched(key); })
+      .catch(() => { toast.show('No se pudo actualizar los servicios', 'error'); })
       .finally(() => setServicesLoading(false));
-  }, []);
+  }, []); // eslint-disable-line
 
   const loadHours = useCallback((bizId: string) => {
-    setHoursLoading(true);
+    const key = `hours:${bizId}`;
+    if (!fetched(key)) setHoursLoading(true);
     api.get(`/businesses/${bizId}/hours`)
       .then(res => {
         const loaded: BusinessHour[] = res.data.hours ?? [];
@@ -605,18 +616,20 @@ export default function DashboardPage() {
           const found = loaded.find(h => h.dayOfWeek === d.dayOfWeek);
           return found ? { dayOfWeek: found.dayOfWeek, openTime: found.openTime, closeTime: found.closeTime, isClosed: found.isClosed } : d;
         }));
+        markFetched(key);
       })
-      .catch(() => setHours(DEFAULT_HOURS))
+      .catch(() => { toast.show('No se pudo actualizar los horarios', 'error'); })
       .finally(() => setHoursLoading(false));
-  }, []);
+  }, []); // eslint-disable-line
 
   const loadPhotos = useCallback((bizId: string) => {
-    setPhotosLoading(true);
+    const key = `photos:${bizId}`;
+    if (!fetched(key)) setPhotosLoading(true);
     api.get(`/businesses/${bizId}/photos`)
-      .then(res => setPhotos(res.data.photos ?? []))
-      .catch(() => setPhotos([]))
+      .then(res => { setPhotos(res.data.photos ?? []); markFetched(key); })
+      .catch(() => { toast.show('No se pudo actualizar las fotos', 'error'); })
       .finally(() => setPhotosLoading(false));
-  }, []);
+  }, []); // eslint-disable-line
 
   useEffect(() => {
     if (!authLoading && !user) { router.push('/login'); return; }
@@ -643,19 +656,26 @@ export default function DashboardPage() {
     loadServices(selectedBizId);
     loadHours(selectedBizId);
     loadPhotos(selectedBizId);
-    const biz = businesses.find(b => b.id === selectedBizId);
-    if (biz) {
-      setProfileForm({ slogan: biz.slogan ?? '', description: biz.description ?? '' });
-      setCoverPreview(biz.coverImage ? resolveUrl(biz.coverImage) : null);
-    }
-  }, [selectedBizId, loadBookings, loadServices, loadHours, loadPhotos, businesses]);
+  }, [selectedBizId]); // eslint-disable-line
 
-  // Auto-refresco cada 30 segundos para mostrar nuevos pedidos sin recargar la página
+  // Inicializar formulario de perfil cuando se selecciona el negocio — efecto separado
+  // para que los cambios en `businesses` (cover upload, edición) no disparen re-fetches.
+  useEffect(() => {
+    const biz = businesses.find(b => b.id === selectedBizId);
+    if (!biz) return;
+    setProfileForm({ slogan: biz.slogan ?? '', description: biz.description ?? '' });
+    setCoverPreview(biz.coverImage ? resolveUrl(biz.coverImage) : null);
+  }, [selectedBizId, businesses]); // eslint-disable-line
+
+  // Auto-refresco cada 60 s — solo cuando la pestaña del navegador está visible.
   useEffect(() => {
     if (!selectedBizId) return;
-    const interval = setInterval(() => loadBookings(selectedBizId), 30_000);
+    const tick = () => {
+      if (document.visibilityState === 'visible') loadBookings(selectedBizId, true);
+    };
+    const interval = setInterval(tick, 60_000);
     return () => clearInterval(interval);
-  }, [selectedBizId, loadBookings]);
+  }, [selectedBizId]); // eslint-disable-line
 
   const updatingBookingIdsRef = useRef<Set<string>>(new Set());
 
@@ -844,36 +864,39 @@ export default function DashboardPage() {
   };
 
   const loadEarnings = useCallback((bizId: string, period: EarningsPeriod) => {
-    setEarningsLoading(true);
+    const key = `earnings:${bizId}:${period}`;
+    if (!fetched(key)) setEarningsLoading(true);
     api.get(`/bookings/business/${bizId}/earnings?period=${period}`)
-      .then(res => setEarnings(res.data))
-      .catch(() => setEarnings(null))
+      .then(res => { setEarnings(res.data); markFetched(key); })
+      .catch(() => { toast.show('No se pudo actualizar los ingresos', 'error'); })
       .finally(() => setEarningsLoading(false));
-  }, []);
+  }, []); // eslint-disable-line
 
   useEffect(() => {
     if (tab === 'Ingresos' && selectedBizId) loadEarnings(selectedBizId, earningsPeriod);
-  }, [tab, selectedBizId, earningsPeriod, loadEarnings]);
+  }, [tab, selectedBizId, earningsPeriod]); // eslint-disable-line
 
   useEffect(() => {
     if (tab === 'Analíticas' && selectedBizId) loadAnalytics(selectedBizId);
-  }, [tab, selectedBizId, loadAnalytics]);
+  }, [tab, selectedBizId]); // eslint-disable-line
 
   const loadAvailBlocks = useCallback((bizId: string) => {
-    setAvailLoading(true);
+    const key = `avail:${bizId}`;
+    if (!fetched(key)) setAvailLoading(true);
     api.get(`/businesses/${bizId}/availability`)
-      .then(res => setAvailBlocks(res.data.blocks ?? []))
-      .catch(() => setAvailBlocks([]))
+      .then(res => { setAvailBlocks(res.data.blocks ?? []); markFetched(key); })
+      .catch(() => { toast.show('No se pudo actualizar la disponibilidad', 'error'); })
       .finally(() => setAvailLoading(false));
-  }, []);
+  }, []); // eslint-disable-line
 
   const loadAgenda = useCallback((bizId: string, date: string) => {
-    setAgendaLoading(true);
+    const key = `agenda:${bizId}:${date}`;
+    if (!fetched(key)) setAgendaLoading(true);
     api.get(`/bookings/business/${bizId}/agenda`, { params: { date } })
-      .then(res => setAgendaBookings(res.data.bookings ?? []))
-      .catch(() => setAgendaBookings([]))
+      .then(res => { setAgendaBookings(res.data.bookings ?? []); markFetched(key); })
+      .catch(() => { toast.show('No se pudo actualizar la agenda', 'error'); })
       .finally(() => setAgendaLoading(false));
-  }, []);
+  }, []); // eslint-disable-line
 
   useEffect(() => {
     if (tab === 'Agenda' && selectedBizId) {
@@ -976,13 +999,10 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-            <p className="text-gray-500 text-sm">Cargando dashboard...</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-500 text-sm">Cargando dashboard...</p>
         </div>
       </div>
     );
