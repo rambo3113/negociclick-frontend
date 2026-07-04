@@ -657,19 +657,42 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, [selectedBizId, loadBookings]);
 
+  const updatingBookingIdsRef = useRef<Set<string>>(new Set());
+
+  const refetchBooking = async (bookingId: string) => {
+    try {
+      const res = await api.get(`/bookings/${bookingId}`);
+      const fresh = res.data.booking;
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: fresh.status, payment: fresh.payment } : b));
+    } catch {
+      // si ni siquiera se puede refrescar, se deja el estado local tal cual
+    }
+  };
+
   const handleStatusChange = async (bookingId: string, status: string) => {
+    // Guard sincrónico: evita doble-submit si el usuario hace doble clic antes de que
+    // React re-renderice el botón como disabled.
+    if (updatingBookingIdsRef.current.has(bookingId)) return;
+    updatingBookingIdsRef.current.add(bookingId);
     setUpdatingBooking(bookingId);
     try {
       await api.put(`/bookings/${bookingId}/status`, { status });
       setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
     } catch (err: any) {
       toast.show(err.response?.data?.error || 'Error al actualizar reserva', 'error');
+      // El backend rechazó por estado desactualizado (ej. "No se puede pasar de X a X"):
+      // refrescamos ese booking puntual para que la card refleje el estado real.
+      if (err.response?.status === 400 || err.response?.status === 409) {
+        refetchBooking(bookingId);
+      }
     } finally {
+      updatingBookingIdsRef.current.delete(bookingId);
       setUpdatingBooking(null);
     }
   };
 
   const handleStatusChangeConfirm = (bookingId: string, status: string, message: string) => {
+    if (updatingBookingIdsRef.current.has(bookingId)) return;
     if (window.confirm(message)) handleStatusChange(bookingId, status);
   };
 
