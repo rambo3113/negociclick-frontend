@@ -37,7 +37,15 @@ interface Service {
 interface Booking {
   id: string; date: string; status: string; totalAmount: number; vendorAmount: number;
   notes?: string; client: { name: string; email: string }; service: { name: string };
+  payment?: { status: string } | null;
 }
+
+const PAYMENT_STATUS_META: Record<string, { label: string; color: string }> = {
+  PAID:     { label: 'Pagado',            color: 'bg-green-50 text-green-700 border-green-100' },
+  PENDING:  { label: 'Pendiente de pago', color: 'bg-yellow-50 text-yellow-700 border-yellow-100' },
+  FAILED:   { label: 'Pago fallido',      color: 'bg-red-50 text-red-700 border-red-100' },
+  REFUNDED: { label: 'Reembolsado',       color: 'bg-gray-50 text-gray-600 border-gray-200' },
+};
 
 interface BusinessHour {
   dayOfWeek: number; openTime: string; closeTime: string; isClosed: boolean;
@@ -1312,10 +1320,17 @@ export default function DashboardPage() {
                                     </span>
                                   </td>
                                   <td className="py-3.5">
-                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${meta.color}`}>
-                                      <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
-                                      {meta.label}
-                                    </span>
+                                    <div className="flex flex-col items-start gap-1">
+                                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${meta.color}`}>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+                                        {meta.label}
+                                      </span>
+                                      {booking.payment && PAYMENT_STATUS_META[booking.payment.status] && (
+                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${PAYMENT_STATUS_META[booking.payment.status].color}`}>
+                                          {PAYMENT_STATUS_META[booking.payment.status].label}
+                                        </span>
+                                      )}
+                                    </div>
                                   </td>
                                   <td className="py-3.5">
                                     {order.isOrder ? (

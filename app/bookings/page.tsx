@@ -38,14 +38,35 @@ function parseMultiServiceNotes(notes?: string): { names: string | null; total: 
   return { names: null, total: null };
 }
 
+interface OrderItem { name: string; qty: number; subtotal: string }
+interface ParsedOrder { items: OrderItem[]; total: string | null; address: string | null }
+
+// Extrae items, total y dirección de notas con formato [PEDIDO]
+function parseOrderNotes(notes?: string): ParsedOrder {
+  if (!notes?.startsWith('[PEDIDO]')) return { items: [], total: null, address: null };
+  const body = notes.slice('[PEDIDO] '.length);
+  const parts = body.split(' | ');
+  const itemsPart = parts[0] ?? '';
+  const total = (parts.find(p => p.startsWith('Total:')) ?? '').slice('Total: '.length) || null;
+  const address = (parts.find(p => p.startsWith('Dirección:')) ?? '').slice('Dirección: '.length) || null;
+  const items: OrderItem[] = itemsPart.split(' + ').map(chunk => {
+    const match = decodeHtml(chunk).match(/^(\d+)x (.+) \(S\/ ([\d.,]+)\)$/);
+    if (!match) return null;
+    return { qty: parseInt(match[1]), name: match[2], subtotal: `S/ ${match[3]}` };
+  }).filter((x): x is OrderItem => x !== null);
+  return { items, total, address };
+}
+
 interface Booking {
   id: string;
   date: string;
   status: string;
   totalAmount: number;
   notes?: string;
+  deliveryAddress?: string | null;
+  payment?: { status: string } | null;
   service: { name: string; duration?: number };
-  business: { name: string; city: string; ownerPlan?: string };
+  business: { name: string; city: string; ownerPlan?: string; orderMode?: 'APPOINTMENT' | 'ORDER' };
   review?: { id: string; rating: number; comment?: string | null };
 }
 
@@ -148,8 +169,9 @@ function BookingsContent() {
     setReviewingId(null);
   };
 
-  const buildRescheduleISO = () => {
+  const buildRescheduleISO = (isOrder: boolean) => {
     if (!rescheduleDate) return '';
+    if (isOrder) return `${rescheduleDate}T12:00:00`;
     let h = parseInt(rescheduleHour);
     if (rescheduleAmPm === 'PM' && h !== 12) h += 12;
     if (rescheduleAmPm === 'AM' && h === 12) h = 0;
@@ -157,7 +179,8 @@ function BookingsContent() {
   };
 
   const handleReschedule = async (id: string) => {
-    const iso = buildRescheduleISO();
+    const isOrder = bookings.find(b => b.id === id)?.business.orderMode === 'ORDER';
+    const iso = buildRescheduleISO(isOrder);
     if (!iso) return;
     setRescheduling(true);
     try {
@@ -243,6 +266,20 @@ function BookingsContent() {
     if (hours < 24)  return `en ${hours}h ${mins}m`;
     const days = Math.floor(hours / 24);
     return `en ${days}d`;
+  };
+
+  const getDeliveryLabel = (dateStr: string) => {
+    const d = new Date(dateStr);
+    if (d.toDateString() === new Date().toDateString()) return 'Entrega: hoy';
+    const formatted = d.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' });
+    return `Entrega: ${formatted}`;
+  };
+
+  const PAYMENT_STATUS_META: Record<string, { label: string; color: string }> = {
+    PAID:     { label: 'Pagado',            color: 'bg-green-50 text-green-700 border-green-100' },
+    PENDING:  { label: 'Pendiente de pago', color: 'bg-yellow-50 text-yellow-700 border-yellow-100' },
+    FAILED:   { label: 'Pago fallido',      color: 'bg-red-50 text-red-700 border-red-100' },
+    REFUNDED: { label: 'Reembolsado',       color: 'bg-gray-50 text-gray-600 border-gray-200' },
   };
 
   const TABS: { key: typeof activeTab; label: string; count?: number }[] = [
@@ -334,6 +371,9 @@ function BookingsContent() {
               const isRescheduling = reschedulingId === booking.id;
               const awaitingCancelConfirm = confirmCancelId === booking.id;
               const canManage = booking.status === 'PENDING' || booking.status === 'CONFIRMED';
+              const isOrder = booking.business.orderMode === 'ORDER';
+              const order = isOrder ? parseOrderNotes(booking.notes) : { items: [], total: null, address: null };
+              const paymentMeta = booking.payment ? PAYMENT_STATUS_META[booking.payment.status] : null;
 
               return (
                 <div
@@ -383,8 +423,18 @@ function BookingsContent() {
                       )}
                     </div>
 
-                    {/* Countdown badge */}
+                    {/* Countdown / delivery badge */}
                     {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (() => {
+                      if (isOrder) {
+                        return (
+                          <div className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl mb-3 ${
+                            booking.status === 'CONFIRMED' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-yellow-50 text-yellow-700 border border-yellow-100'
+                          }`}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                            {getDeliveryLabel(booking.date)}
+                          </div>
+                        );
+                      }
                       const label = getCountdownLabel(booking.date);
                       return label ? (
                         <div className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl mb-3 ${
@@ -395,6 +445,38 @@ function BookingsContent() {
                         </div>
                       ) : null;
                     })()}
+
+                    {/* Detalle de pedido (negocios ORDER) */}
+                    {isOrder && (
+                      <div className="mb-3 bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-2">
+                        {order.items.length > 0 ? (
+                          <ul className="space-y-1">
+                            {order.items.map((item, i) => (
+                              <li key={i} className="flex items-center justify-between text-sm text-gray-700">
+                                <span>{item.name} x{item.qty}</span>
+                                <span className="font-medium">{item.subtotal}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-xs text-gray-400 italic">
+                            El detalle de productos de este pedido no está disponible.
+                          </p>
+                        )}
+                        {(booking.deliveryAddress || order.address) && (
+                          <div className="flex items-start gap-1.5 text-sm text-gray-500 pt-1 border-t border-gray-100">
+                            <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                            {booking.deliveryAddress || order.address}
+                          </div>
+                        )}
+                        {paymentMeta && (
+                          <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border ${paymentMeta.color}`}>
+                            <CreditCard className="w-3.5 h-3.5" />
+                            {paymentMeta.label}
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {/* Review display */}
                     {booking.review && !isReviewing && (
@@ -414,7 +496,9 @@ function BookingsContent() {
                     {/* Footer */}
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                       <span className="font-bold text-gray-900 text-lg">
-                        {parseMultiServiceNotes(booking.notes).total
+                        {isOrder && <span className="font-semibold text-sm text-gray-500 mr-1">Total:</span>}
+                        {order.total
+                          ?? parseMultiServiceNotes(booking.notes).total
                           ?? `S/ ${Number(booking.totalAmount).toFixed(2)}`}
                       </span>
 
@@ -441,7 +525,7 @@ function BookingsContent() {
                             className="inline-flex items-center gap-1.5 text-sm px-3 py-2 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-xl hover:bg-indigo-100 transition font-medium"
                           >
                             <RefreshCw className="w-3.5 h-3.5" />
-                            Reagendar
+                            {isOrder ? 'Cambiar fecha de entrega' : 'Reagendar'}
                           </button>
                         )}
 
@@ -498,7 +582,9 @@ function BookingsContent() {
                   {isRescheduling && (
                     <div className="border-t border-gray-100 bg-indigo-50/50 p-5">
                       <div className="flex items-center justify-between mb-4">
-                        <p className="font-semibold text-gray-900 text-sm">Reagendar cita</p>
+                        <p className="font-semibold text-gray-900 text-sm">
+                          {isOrder ? 'Cambiar fecha de entrega' : 'Reagendar cita'}
+                        </p>
                         <button onClick={() => setReschedulingId(null)} className="text-gray-400 hover:text-gray-600 p-1">
                           <X className="w-4 h-4" />
                         </button>
@@ -512,7 +598,7 @@ function BookingsContent() {
                           min={new Date().toISOString().slice(0, 10)}
                           className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
-                        <div className="flex items-center gap-2">
+                        {!isOrder && <div className="flex items-center gap-2">
                           <select
                             value={rescheduleHour}
                             onChange={e => setRescheduleHour(e.target.value)}
@@ -543,7 +629,7 @@ function BookingsContent() {
                               </button>
                             ))}
                           </div>
-                        </div>
+                        </div>}
                       </div>
 
                       <div className="flex gap-2 mt-4">
