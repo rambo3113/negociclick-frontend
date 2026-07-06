@@ -33,11 +33,12 @@ interface Props {
   paymentId: string;
   onSuccess: () => void;
   onClose: () => void;
+  isOrder?: boolean;
 }
 
 type Step = 'summary' | 'processing' | 'success';
 
-export default function CulqiPaymentModal({ booking, paymentId, onSuccess, onClose }: Props) {
+export default function CulqiPaymentModal({ booking, paymentId, onSuccess, onClose, isOrder = false }: Props) {
   const { user } = useAuth();
   const [culqiReady, setCulqiReady] = useState(false);
   const [step, setStep] = useState<Step>('summary');
@@ -114,14 +115,16 @@ export default function CulqiPaymentModal({ booking, paymentId, onSuccess, onClo
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">¡Pago exitoso!</h3>
               <p className="text-gray-500 text-sm mb-2">
-                Tu reserva de <strong>{booking.service.name}</strong> ha sido confirmada.
+                {isOrder
+                  ? <>Tu pedido de <strong>{booking.service.name}</strong> ha sido confirmado.</>
+                  : <>Tu reserva de <strong>{booking.service.name}</strong> ha sido confirmada.</>}
               </p>
               <p className="text-indigo-600 font-bold text-2xl mb-7">S/ {amountFormatted}</p>
               <button
                 onClick={() => { onSuccess(); onClose(); }}
                 className="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition"
               >
-                Ver mis reservas
+                {isOrder ? 'Ver mis pedidos' : 'Ver mis reservas'}
               </button>
             </div>
 

@@ -1373,6 +1373,7 @@ export default function BusinessDetailPage() {
             totalAmount: premiumPayment.booking.totalAmount,
           }}
           paymentId={premiumPayment.paymentId}
+          isOrder={isOrderCategory}
           onSuccess={() => {
             setPremiumPayment(null);
             if (isOrderCategory) {

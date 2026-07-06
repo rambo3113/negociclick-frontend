@@ -208,10 +208,11 @@ function BookingsContent() {
     if (confirmCancelId !== id) { setConfirmCancelId(id); return; }
     setConfirmCancelId(null);
     setCancelling(id);
+    const isOrder = bookings.find(b => b.id === id)?.business.orderMode === 'ORDER';
     try {
       await api.delete(`/bookings/${id}`);
       setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'CANCELLED' } : b));
-      toast.show('Reserva cancelada', 'info');
+      toast.show(isOrder ? 'Pedido cancelado' : 'Reserva cancelada', 'info');
     } catch (err: any) {
       toast.show(err.response?.data?.error || 'Error al cancelar', 'error');
     } finally {
@@ -303,7 +304,7 @@ function BookingsContent() {
 
       <main className="max-w-3xl mx-auto w-full px-4 py-8">
         <div className="flex items-center justify-between mb-5">
-          <h1 className="text-2xl font-bold text-gray-900">Mis reservas</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Mis pedidos y reservas</h1>
           <div className="flex gap-2">
             {pendingCount > 0 && (
               <span className="text-xs bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-full font-medium">
@@ -720,11 +721,17 @@ function BookingsContent() {
             totalAmount: paymentSession.booking.totalAmount,
           }}
           paymentId={paymentSession.paymentId}
+          isOrder={paymentSession.booking.business.orderMode === 'ORDER'}
           onSuccess={() => {
             setBookings(prev => prev.map(b =>
               b.id === paymentSession.booking.id ? { ...b, status: 'CONFIRMED' } : b
             ));
-            toast.show('¡Pago exitoso! Reserva confirmada.', 'success');
+            toast.show(
+              paymentSession.booking.business.orderMode === 'ORDER'
+                ? '¡Pago exitoso! Pedido confirmado.'
+                : '¡Pago exitoso! Reserva confirmada.',
+              'success'
+            );
           }}
           onClose={() => setPaymentSession(null)}
         />

@@ -94,7 +94,7 @@ export default function Navbar() {
                   }`}
                 >
                   <Calendar className="w-4 h-4" />
-                  Mis reservas
+                  Mis pedidos y reservas
                   {pendingCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
                       {pendingCount > 9 ? '9+' : pendingCount}
@@ -186,7 +186,7 @@ export default function Navbar() {
                 </Link>
               )}
               <Link href="/bookings" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50">
-                <Calendar className="w-4 h-4 text-gray-400" /> Mis reservas
+                <Calendar className="w-4 h-4 text-gray-400" /> Mis pedidos y reservas
                 {pendingCount > 0 && (
                   <span className="ml-auto bg-red-500 text-white text-xs font-black px-1.5 py-0.5 rounded-full">
                     {pendingCount > 9 ? '9+' : pendingCount}
