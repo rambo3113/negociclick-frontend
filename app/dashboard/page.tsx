@@ -548,6 +548,7 @@ export default function DashboardPage() {
   // Agenda — calendario de citas
   interface AgendaBooking {
     id: string; date: string; status: string; totalAmount: number; notes: string | null;
+    deliveryAddress: string | null;
     service: { name: string; duration: number; price: number };
     client:  { name: string; phone: string | null; email: string };
     payment: { status: string; provider: string } | null;
@@ -1730,165 +1731,286 @@ export default function DashboardPage() {
               {tab === 'Agenda' && (
                 <div className="p-6 space-y-6">
 
-                  {/* ─── SECCIÓN 1: Citas del día ─── */}
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
+                  {/* ─── SECCIÓN 1: Citas / Entregas del día ─── */}
+                  {(() => {
+                    const isOrderBiz = selectedBiz?.orderMode === 'ORDER';
+                    const sectionTitle    = isOrderBiz ? 'Entregas del día'  : 'Citas del día';
+                    const sectionSubtitle = isOrderBiz
+                      ? 'Pedidos con entrega programada para la fecha seleccionada'
+                      : 'Reservas confirmadas y pendientes para la fecha seleccionada';
+                    const emptyLabel = isOrderBiz ? 'Sin entregas para este día' : 'Sin citas para este día';
+                    const unitLabel  = (n: number) => isOrderBiz
+                      ? `${n} entrega${n !== 1 ? 's' : ''}`
+                      : `${n} cita${n !== 1 ? 's' : ''}`;
+
+                    const agendaStatusColors: Record<string, string> = {
+                      PENDING:   'bg-yellow-50 border-yellow-200',
+                      CONFIRMED: 'bg-blue-50   border-blue-200',
+                      PREPARING: 'bg-blue-50   border-blue-200',
+                      COMPLETED: 'bg-green-50  border-green-200',
+                      DELIVERED: 'bg-green-50  border-green-200',
+                    };
+                    const agendaStatusBadge: Record<string, { label: string; cls: string }> = {
+                      PENDING:   { label: 'Pendiente',  cls: 'bg-yellow-100 text-yellow-700' },
+                      CONFIRMED: { label: 'Confirmado', cls: 'bg-blue-100   text-blue-700'   },
+                      PREPARING: { label: 'Preparando', cls: 'bg-blue-100   text-blue-700'   },
+                      COMPLETED: { label: 'Completado', cls: 'bg-green-100  text-green-700'  },
+                      DELIVERED: { label: 'Entregado',  cls: 'bg-green-100  text-green-700'  },
+                    };
+
+                    return (
                       <div>
-                        <h3 className="font-semibold text-gray-900">Citas del día</h3>
-                        <p className="text-xs text-gray-400 mt-0.5">Reservas confirmadas y pendientes para la fecha seleccionada</p>
-                      </div>
-                      {/* Navegación de fecha */}
-                      <div className="flex items-center gap-2">
-                        <button
-                          aria-label="Día anterior"
-                          onClick={() => {
-                            const d = new Date(agendaDate + 'T12:00:00');
-                            d.setDate(d.getDate() - 1);
-                            setAgendaDate(d.toISOString().slice(0, 10));
-                          }}
-                          className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition text-gray-500"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <input
-                          type="date"
-                          value={agendaDate}
-                          onChange={e => setAgendaDate(e.target.value)}
-                          className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-                        />
-                        <button
-                          aria-label="Día siguiente"
-                          onClick={() => {
-                            const d = new Date(agendaDate + 'T12:00:00');
-                            d.setDate(d.getDate() + 1);
-                            setAgendaDate(d.toISOString().slice(0, 10));
-                          }}
-                          className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition text-gray-500"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setAgendaDate(todayISO())}
-                          className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition"
-                        >
-                          Hoy
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Strip semanal */}
-                    {(() => {
-                      const base = new Date(agendaDate + 'T12:00:00');
-                      const mon = new Date(base);
-                      mon.setDate(base.getDate() - ((base.getDay() + 6) % 7));
-                      const days = Array.from({ length: 7 }, (_, i) => {
-                        const d = new Date(mon);
-                        d.setDate(mon.getDate() + i);
-                        return d;
-                      });
-                      const DAYS_ES = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
-                      return (
-                        <div className="grid grid-cols-7 gap-1 mb-5 bg-gray-50 rounded-xl p-2">
-                          {days.map((d, i) => {
-                            const iso = d.toISOString().slice(0, 10);
-                            const isSelected = iso === agendaDate;
-                            const isToday    = iso === todayISO();
-                            return (
-                              <button
-                                key={iso}
-                                onClick={() => setAgendaDate(iso)}
-                                className={`flex flex-col items-center py-2 rounded-lg transition-all text-xs font-semibold ${
-                                  isSelected
-                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                                    : isToday
-                                    ? 'bg-white border border-indigo-200 text-indigo-600'
-                                    : 'text-gray-500 hover:bg-white hover:text-gray-900'
-                                }`}
-                              >
-                                <span className="text-[10px] font-medium opacity-70">{DAYS_ES[i]}</span>
-                                <span className="text-sm font-black mt-0.5">{d.getDate()}</span>
-                              </button>
-                            );
-                          })}
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{sectionTitle}</h3>
+                            <p className="text-xs text-gray-400 mt-0.5">{sectionSubtitle}</p>
+                          </div>
+                          {/* Navegación de fecha */}
+                          <div className="flex items-center gap-2">
+                            <button
+                              aria-label="Día anterior"
+                              onClick={() => {
+                                const d = new Date(agendaDate + 'T12:00:00');
+                                d.setDate(d.getDate() - 1);
+                                setAgendaDate(d.toISOString().slice(0, 10));
+                              }}
+                              className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition text-gray-500"
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <input
+                              type="date"
+                              value={agendaDate}
+                              onChange={e => setAgendaDate(e.target.value)}
+                              className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                            />
+                            <button
+                              aria-label="Día siguiente"
+                              onClick={() => {
+                                const d = new Date(agendaDate + 'T12:00:00');
+                                d.setDate(d.getDate() + 1);
+                                setAgendaDate(d.toISOString().slice(0, 10));
+                              }}
+                              className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition text-gray-500"
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setAgendaDate(todayISO())}
+                              className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition"
+                            >
+                              Hoy
+                            </button>
+                          </div>
                         </div>
-                      );
-                    })()}
 
-                    {/* Timeline de citas */}
-                    {agendaLoading ? (
-                      <div className="flex justify-center py-10">
-                        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                      </div>
-                    ) : agendaBookings.length === 0 ? (
-                      <div className="text-center py-12 border border-dashed border-gray-200 rounded-xl">
-                        <Calendar className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                        <p className="text-sm font-medium text-gray-500">Sin citas para este día</p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {new Date(agendaDate + 'T12:00:00').toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' })}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {agendaBookings.map(bk => {
-                          const bkDate = new Date(bk.date);
-                          const timeStr = bkDate.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Lima' });
-                          const endDate = new Date(bkDate.getTime() + bk.service.duration * 60_000);
-                          const endStr  = endDate.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Lima' });
-                          const statusColors: Record<string, string> = {
-                            PENDING:   'bg-yellow-50 border-yellow-200',
-                            CONFIRMED: 'bg-blue-50 border-blue-200',
-                            COMPLETED: 'bg-green-50 border-green-200',
-                          };
-                          const statusLabel: Record<string, string> = {
-                            PENDING:   '⏳ Pendiente',
-                            CONFIRMED: '✅ Confirmada',
-                            COMPLETED: '🏁 Completada',
-                          };
-                          const isPaid = bk.payment?.status === 'PAID';
+                        {/* Strip semanal */}
+                        {(() => {
+                          const base = new Date(agendaDate + 'T12:00:00');
+                          const mon = new Date(base);
+                          mon.setDate(base.getDate() - ((base.getDay() + 6) % 7));
+                          const days = Array.from({ length: 7 }, (_, i) => {
+                            const d = new Date(mon);
+                            d.setDate(mon.getDate() + i);
+                            return d;
+                          });
+                          const DAYS_ES = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
                           return (
-                            <div key={bk.id} className={`flex gap-4 border rounded-xl px-4 py-3 ${statusColors[bk.status] ?? 'bg-gray-50 border-gray-200'}`}>
-                              {/* Hora */}
-                              <div className="flex-shrink-0 text-center w-14 pt-0.5">
-                                <p className="text-sm font-black text-gray-900">{timeStr}</p>
-                                <p className="text-[10px] text-gray-400">{endStr}</p>
-                              </div>
-                              {/* Separador */}
-                              <div className="w-px bg-gray-200 flex-shrink-0" />
-                              {/* Contenido */}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-2 flex-wrap">
-                                  <p className="font-semibold text-gray-900 text-sm">{bk.client.name}</p>
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className="text-[11px] font-semibold text-gray-500 bg-white border border-gray-200 px-2 py-0.5 rounded-full">
-                                      {statusLabel[bk.status] ?? bk.status}
+                            <div className="grid grid-cols-7 gap-1 mb-5 bg-gray-50 rounded-xl p-2">
+                              {days.map((d, i) => {
+                                const iso = d.toISOString().slice(0, 10);
+                                const isSelected = iso === agendaDate;
+                                const isToday    = iso === todayISO();
+                                return (
+                                  <button
+                                    key={iso}
+                                    onClick={() => setAgendaDate(iso)}
+                                    className={`flex flex-col items-center py-2 rounded-lg transition-all text-xs font-semibold ${
+                                      isSelected
+                                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
+                                        : isToday
+                                        ? 'bg-white border border-indigo-200 text-indigo-600'
+                                        : 'text-gray-500 hover:bg-white hover:text-gray-900'
+                                    }`}
+                                  >
+                                    <span className="text-[10px] font-medium opacity-70">{DAYS_ES[i]}</span>
+                                    <span className="text-sm font-black mt-0.5">{d.getDate()}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
+
+                        {/* Lista de citas / entregas */}
+                        {agendaLoading ? (
+                          <div className="flex justify-center py-10">
+                            <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                          </div>
+                        ) : agendaBookings.length === 0 ? (
+                          <div className="text-center py-12 border border-dashed border-gray-200 rounded-xl">
+                            <Calendar className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+                            <p className="text-sm font-medium text-gray-500">{emptyLabel}</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {new Date(agendaDate + 'T12:00:00').toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' })}
+                            </p>
+                          </div>
+                        ) : isOrderBiz ? (
+                          /* ── Tarjetas de entregas para negocios ORDER ── */
+                          <div className="space-y-3">
+                            {agendaBookings.map(bk => {
+                              const order   = parseOrderNotes(bk.notes ?? undefined);
+                              const badge   = agendaStatusBadge[bk.status];
+                              const cardCls = agendaStatusColors[bk.status] ?? 'bg-gray-50 border-gray-200';
+                              const isUpdating = updatingBooking === bk.id;
+                              return (
+                                <div key={bk.id} className={`border rounded-xl p-4 ${cardCls}`}>
+                                  {/* Cabecera */}
+                                  <div className="flex items-start justify-between gap-2 flex-wrap mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <Package className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                      <p className="font-semibold text-gray-900 text-sm">{bk.client.name}</p>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      {badge && (
+                                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${badge.cls}`}>
+                                          {badge.label}
+                                        </span>
+                                      )}
+                                      {bk.payment?.status === 'PAID' && (
+                                        <span className="text-[11px] font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                                          Pagado
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Productos */}
+                                  {order.items && (
+                                    <p className="text-xs text-gray-700 mb-1">
+                                      <span className="font-medium text-gray-500">Productos: </span>{order.items}
+                                    </p>
+                                  )}
+
+                                  {/* Dirección */}
+                                  {(bk.deliveryAddress || order.address) && (
+                                    <p className="text-xs text-gray-700 mb-1">
+                                      <span className="font-medium text-gray-500">Dirección: </span>
+                                      {bk.deliveryAddress || order.address}
+                                    </p>
+                                  )}
+
+                                  {/* Notas extra */}
+                                  {order.extraNotes && (
+                                    <p className="text-xs text-gray-400 mb-2 italic">"{order.extraNotes}"</p>
+                                  )}
+
+                                  {/* Total + teléfono */}
+                                  <div className="flex items-center gap-3 mt-2">
+                                    <span className="text-sm font-bold text-indigo-600">
+                                      S/ {bk.totalAmount.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
                                     </span>
-                                    {isPaid && (
-                                      <span className="text-[11px] font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                                        💵 Pagado
-                                      </span>
+                                    {bk.client.phone && (
+                                      <a href={`tel:${bk.client.phone}`} className="text-xs text-gray-400 hover:text-indigo-600 transition">
+                                        📞 {bk.client.phone}
+                                      </a>
+                                    )}
+                                  </div>
+
+                                  {/* Acciones rápidas */}
+                                  <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-black/5">
+                                    {bk.status === 'PENDING' && (
+                                      <button onClick={() => handleStatusChange(bk.id, 'PREPARING')} disabled={isUpdating}
+                                        className="inline-flex items-center gap-1 text-xs px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 disabled:opacity-50 transition font-medium">
+                                        <Check className="w-3 h-3" />{isUpdating ? 'Actualizando...' : 'Preparar'}
+                                      </button>
+                                    )}
+                                    {bk.status === 'CONFIRMED' && (
+                                      <button onClick={() => handleStatusChangeConfirm(bk.id, 'PREPARING', '¿Iniciar la preparación de este pedido?')} disabled={isUpdating}
+                                        className="inline-flex items-center gap-1 text-xs px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 disabled:opacity-50 transition font-medium">
+                                        <Check className="w-3 h-3" />{isUpdating ? 'Actualizando...' : 'Iniciar preparación'}
+                                      </button>
+                                    )}
+                                    {bk.status === 'PREPARING' && (
+                                      isPremium
+                                        ? <button onClick={() => handleStatusChangeConfirm(bk.id, 'DELIVERED', '¿Marcar este pedido como entregado?')} disabled={isUpdating}
+                                            className="inline-flex items-center gap-1 text-xs px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 disabled:opacity-50 transition font-medium">
+                                            <Check className="w-3 h-3" />{isUpdating ? 'Actualizando...' : 'Marcar entregado'}
+                                          </button>
+                                        : <button onClick={() => handleMarkPaid(bk.id)} disabled={markingPaid === bk.id}
+                                            className="inline-flex items-center gap-1 text-xs px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 disabled:opacity-50 transition font-medium">
+                                            <Banknote className="w-3 h-3" />{markingPaid === bk.id ? 'Registrando...' : 'Marcar pagado'}
+                                          </button>
                                     )}
                                   </div>
                                 </div>
-                                <p className="text-xs text-gray-600 mt-0.5">{bk.service.name} · {bk.service.duration} min</p>
-                                <div className="flex items-center gap-3 mt-1">
-                                  <span className="text-xs font-bold text-indigo-600">S/ {bk.totalAmount.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
-                                  {bk.client.phone && (
-                                    <a href={`tel:${bk.client.phone}`} className="text-xs text-gray-400 hover:text-indigo-600 transition">
-                                      📞 {bk.client.phone}
-                                    </a>
-                                  )}
-                                  {bk.notes && <span className="text-xs text-gray-400 truncate">"{bk.notes}"</span>}
+                              );
+                            })}
+                            <p className="text-xs text-gray-400 text-center pt-2">
+                              {unitLabel(agendaBookings.length)} · S/ {agendaBookings.reduce((s, b) => s + b.totalAmount, 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })} total del día
+                            </p>
+                          </div>
+                        ) : (
+                          /* ── Timeline de citas para negocios APPOINTMENT ── */
+                          <div className="space-y-2">
+                            {agendaBookings.map(bk => {
+                              const bkDate = new Date(bk.date);
+                              const timeStr = bkDate.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Lima' });
+                              const endDate = new Date(bkDate.getTime() + bk.service.duration * 60_000);
+                              const endStr  = endDate.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Lima' });
+                              const cardCls = agendaStatusColors[bk.status] ?? 'bg-gray-50 border-gray-200';
+                              const apptStatusLabel: Record<string, string> = {
+                                PENDING:   '⏳ Pendiente',
+                                CONFIRMED: '✅ Confirmada',
+                                COMPLETED: '🏁 Completada',
+                              };
+                              const isPaid = bk.payment?.status === 'PAID';
+                              return (
+                                <div key={bk.id} className={`flex gap-4 border rounded-xl px-4 py-3 ${cardCls}`}>
+                                  {/* Hora */}
+                                  <div className="flex-shrink-0 text-center w-14 pt-0.5">
+                                    <p className="text-sm font-black text-gray-900">{timeStr}</p>
+                                    <p className="text-[10px] text-gray-400">{endStr}</p>
+                                  </div>
+                                  {/* Separador */}
+                                  <div className="w-px bg-gray-200 flex-shrink-0" />
+                                  {/* Contenido */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                                      <p className="font-semibold text-gray-900 text-sm">{bk.client.name}</p>
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="text-[11px] font-semibold text-gray-500 bg-white border border-gray-200 px-2 py-0.5 rounded-full">
+                                          {apptStatusLabel[bk.status] ?? bk.status}
+                                        </span>
+                                        {isPaid && (
+                                          <span className="text-[11px] font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                                            💵 Pagado
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <p className="text-xs text-gray-600 mt-0.5">{bk.service.name} · {bk.service.duration} min</p>
+                                    <div className="flex items-center gap-3 mt-1">
+                                      <span className="text-xs font-bold text-indigo-600">S/ {bk.totalAmount.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                                      {bk.client.phone && (
+                                        <a href={`tel:${bk.client.phone}`} className="text-xs text-gray-400 hover:text-indigo-600 transition">
+                                          📞 {bk.client.phone}
+                                        </a>
+                                      )}
+                                      {bk.notes && <span className="text-xs text-gray-400 truncate">"{bk.notes}"</span>}
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                        <p className="text-xs text-gray-400 text-center pt-2">
-                          {agendaBookings.length} cita{agendaBookings.length !== 1 ? 's' : ''} · S/ {agendaBookings.reduce((s, b) => s + b.totalAmount, 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })} total del día
-                        </p>
+                              );
+                            })}
+                            <p className="text-xs text-gray-400 text-center pt-2">
+                              {unitLabel(agendaBookings.length)} · S/ {agendaBookings.reduce((s, b) => s + b.totalAmount, 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })} total del día
+                            </p>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    );
+                  })()}
 
                   <hr className="border-gray-100" />
 
