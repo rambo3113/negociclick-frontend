@@ -32,6 +32,7 @@ interface Business {
 interface Service {
   id: string; name: string; description?: string | null;
   price: number; duration?: number | null; category: string; photo?: string | null;
+  isActive?: boolean;
 }
 
 interface Booking {
@@ -491,6 +492,12 @@ export default function DashboardPage() {
   const [serviceError, setServiceError] = useState('');
   const [deletingService, setDeletingService] = useState<string | null>(null);
 
+  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [editServiceForm, setEditServiceForm] = useState({ name: '', description: '', price: '', duration: '', isActive: true });
+  const [savingServiceEdit, setSavingServiceEdit] = useState(false);
+  const [editServiceError, setEditServiceError] = useState('');
+  const savingServiceEditRef = useRef(false);
+
   const [updatingBooking, setUpdatingBooking] = useState<string | null>(null);
   const [expandedBooking, setExpandedBooking] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
@@ -752,6 +759,46 @@ export default function DashboardPage() {
       toast.show(err.response?.data?.error || 'Error al eliminar servicio', 'error');
     } finally {
       setDeletingService(null);
+    }
+  };
+
+  const openEditService = (service: Service) => {
+    setEditingService(service);
+    setEditServiceForm({
+      name: service.name,
+      description: service.description ?? '',
+      price: String(service.price),
+      duration: service.duration != null ? String(service.duration) : '',
+      isActive: service.isActive ?? true,
+    });
+    setEditServiceError('');
+  };
+
+  const handleUpdateService = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    if (!editingService) return;
+    // Guard sincrónico: mismo patrón que handleStatusChange (fix cc90078) para
+    // evitar doble-submit antes de que React re-renderice el botón disabled.
+    if (savingServiceEditRef.current) return;
+    savingServiceEditRef.current = true;
+    setSavingServiceEdit(true);
+    setEditServiceError('');
+    try {
+      const res = await api.put(`/services/${editingService.id}`, {
+        name: editServiceForm.name,
+        description: editServiceForm.description || undefined,
+        price: parseFloat(editServiceForm.price),
+        duration: editServiceForm.duration ? parseInt(editServiceForm.duration) : undefined,
+        isActive: editServiceForm.isActive,
+      });
+      setServices(prev => prev.map(s => s.id === editingService.id ? res.data.service : s));
+      setEditingService(null);
+      toast.show('Servicio actualizado', 'success');
+    } catch (err: any) {
+      setEditServiceError(err.response?.data?.error || 'Error al actualizar servicio');
+    } finally {
+      savingServiceEditRef.current = false;
+      setSavingServiceEdit(false);
     }
   };
 
@@ -2335,7 +2382,12 @@ export default function DashboardPage() {
                           <div className="p-4">
                             <div className="flex items-start justify-between">
                               <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-gray-900 truncate">{service.name}</p>
+                                <div className="flex items-center gap-1.5">
+                                  <p className="font-semibold text-gray-900 truncate">{service.name}</p>
+                                  {service.isActive === false && (
+                                    <span className="flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full">Inactivo</span>
+                                  )}
+                                </div>
                                 <p className="text-xs text-indigo-600 mt-0.5">{CATEGORY_LABELS[service.category] || service.category}</p>
                                 {service.description && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{service.description}</p>}
                                 <div className="flex items-center gap-3 mt-2">
@@ -2359,10 +2411,16 @@ export default function DashboardPage() {
                                   </button>
                                 </div>
                               ) : (
-                                <button onClick={() => handleDeleteService(service.id)}
-                                  className="ml-3 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition opacity-0 group-hover:opacity-100" title="Eliminar">
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
+                                <div className="ml-3 flex items-center gap-1 flex-shrink-0">
+                                  <button onClick={() => openEditService(service)}
+                                    className="p-2 text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition opacity-0 group-hover:opacity-100" title="Editar">
+                                    <Pencil className="w-4 h-4" />
+                                  </button>
+                                  <button onClick={() => handleDeleteService(service.id)}
+                                    className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition opacity-0 group-hover:opacity-100" title="Eliminar">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -2715,6 +2773,80 @@ export default function DashboardPage() {
                   {savingEdit
                     ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     : <><Save className="w-4 h-4" /> Guardar cambios</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingService && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setEditingService(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md z-10 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div>
+                <h3 className="font-bold text-gray-900">Editar servicio</h3>
+                <p className="text-xs text-gray-400 mt-0.5">{editingService.name}</p>
+              </div>
+              <button onClick={() => setEditingService(null)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleUpdateService} className="p-6 space-y-4">
+              {editServiceError && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />{editServiceError}
+                </div>
+              )}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Nombre *</label>
+                <input type="text" required maxLength={100} value={editServiceForm.name}
+                  onChange={e => setEditServiceForm(f => ({ ...f, name: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Precio (S/) *</label>
+                  <input type="number" required min="0.01" step="0.01" value={editServiceForm.price}
+                    onChange={e => setEditServiceForm(f => ({ ...f, price: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Duración (min)</label>
+                  <input type="number" min="1" value={editServiceForm.duration}
+                    onChange={e => setEditServiceForm(f => ({ ...f, duration: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Descripción</label>
+                <textarea rows={3} maxLength={500} value={editServiceForm.description}
+                  onChange={e => setEditServiceForm(f => ({ ...f, description: e.target.value }))}
+                  placeholder="Descripción del servicio"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition resize-none" />
+              </div>
+              <label className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-3 cursor-pointer">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Servicio activo</p>
+                  <p className="text-xs text-gray-400">Los servicios inactivos no aparecen para los clientes.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditServiceForm(f => ({ ...f, isActive: !f.isActive }))}
+                  className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${editServiceForm.isActive ? 'bg-indigo-600' : 'bg-gray-300'}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${editServiceForm.isActive ? 'translate-x-5' : ''}`} />
+                </button>
+              </label>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setEditingService(null)}
+                  className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition">Cancelar</button>
+                <button type="submit" disabled={savingServiceEdit}
+                  className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2">
+                  {savingServiceEdit
+                    ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    : <><Save className="w-4 h-4" /> Guardar</>}
                 </button>
               </div>
             </form>
