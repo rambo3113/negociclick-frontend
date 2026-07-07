@@ -8,16 +8,20 @@ export default function EmailVerificationBanner() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [error, setError] = useState('');
 
   if (dismissed) return null;
 
   const handleSend = async () => {
     setLoading(true);
+    setError('');
     try {
       await api.post('/auth/send-verification');
       setSent(true);
-    } catch {
-      // silencioso — el botón se puede volver a intentar
+    } catch (err: any) {
+      // 429 = ya se envió hace poco (rate limit 1/min) — mostramos el motivo
+      // en vez de fallar en silencio, para que el usuario no crea que no pasó nada.
+      setError(err.response?.data?.error || 'No se pudo enviar el correo. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -44,6 +48,7 @@ export default function EmailVerificationBanner() {
                 {loading ? 'Enviando...' : 'Enviar correo de verificación'}
               </button>
             </p>
+            {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
           </>
         )}
       </div>

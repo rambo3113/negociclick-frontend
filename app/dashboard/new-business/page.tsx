@@ -293,6 +293,8 @@ export default function NewBusinessPage() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
 
   useEffect(() => {
     api.get('/subscriptions/my')
@@ -304,6 +306,19 @@ export default function NewBusinessPage() {
   const selectedCategory = CATEGORIES.find(c => c.value === form.category);
 
   const set = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }));
+
+  const handleResendVerification = async () => {
+    setResendingVerification(true);
+    setResendMessage('');
+    try {
+      await api.post('/auth/send-verification');
+      setResendMessage('Correo reenviado. Revisa tu bandeja de entrada.');
+    } catch (err: any) {
+      setResendMessage(err.response?.data?.error || 'No se pudo reenviar el correo.');
+    } finally {
+      setResendingVerification(false);
+    }
+  };
 
   const toggleDay = (dayOfWeek: number) =>
     setHours(h => h.map(d => d.dayOfWeek === dayOfWeek ? { ...d, isClosed: !d.isClosed } : d));
@@ -444,7 +459,20 @@ export default function NewBusinessPage() {
 
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm mb-6">
-                  {error}
+                  <p>{error}</p>
+                  {error.toLowerCase().includes('verificar tu correo') && (
+                    <div className="mt-2">
+                      <button
+                        type="button"
+                        onClick={handleResendVerification}
+                        disabled={resendingVerification}
+                        className="text-xs font-semibold underline hover:text-red-800 disabled:opacity-50 transition"
+                      >
+                        {resendingVerification ? 'Enviando...' : 'Reenviar correo de verificación'}
+                      </button>
+                      {resendMessage && <p className="text-xs text-red-600 mt-1">{resendMessage}</p>}
+                    </div>
+                  )}
                 </div>
               )}
 

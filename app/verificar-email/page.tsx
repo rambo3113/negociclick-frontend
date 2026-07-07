@@ -5,21 +5,28 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Logo from '@/components/Logo';
 import api from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { CheckCircle2, XCircle, Loader2, ArrowRight } from 'lucide-react';
 
 function VerifyContent() {
   const params   = useSearchParams();
   const router   = useRouter();
   const token    = params.get('token');
+  const { refreshProfile } = useAuth();
   const [status,    setStatus]    = useState<'loading' | 'ok' | 'error'>('loading');
   const [countdown, setCountdown] = useState(4);
 
   useEffect(() => {
     if (!token) { setStatus('error'); return; }
     api.get(`/auth/verify-email?token=${token}`)
-      .then(() => setStatus('ok'))
+      .then(() => {
+        setStatus('ok');
+        // Refresca el user en memoria: sin esto, el dashboard seguía mostrando
+        // el aviso de "verifica tu correo" con los datos viejos hasta el próximo login.
+        refreshProfile();
+      })
       .catch(() => setStatus('error'));
-  }, [token]);
+  }, [token, refreshProfile]);
 
   // Countdown + redirect automático al verificar
   useEffect(() => {
