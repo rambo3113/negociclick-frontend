@@ -39,7 +39,7 @@ const PLAN_META = {
     btnClass: 'bg-indigo-600 hover:bg-indigo-700',
     amountColor: 'text-indigo-600',
     benefits: [
-      'Hasta 15 servicios',
+      'Servicios ilimitados',
       'Perfil destacado en búsquedas',
       'Soporte prioritario',
     ],

@@ -78,8 +78,8 @@ const PRO_PERIODS = [
 ] as const;
 
 const PREMIUM_PERIODS = [
-  { key: 'monthly', label: 'Mensual', perMonth: 79.99, save: null,              total: 79.99,  months: 1  },
-  { key: 'annual',  label: 'Anual',   perMonth: 63.99, save: 'Ahorras S/ 192', total: 767.88, months: 12 },
+  { key: 'monthly', label: 'Mensual', perMonth: 59.99, save: null,              total: 59.99,  months: 1  },
+  { key: 'annual',  label: 'Anual',   perMonth: 47.99, save: 'Ahorras S/ 144', total: 575.88, months: 12 },
 ] as const;
 
 function SkeletonCard() {
@@ -468,7 +468,7 @@ export default function HomePage() {
 
               <ul className="space-y-2 flex-1">
                 {[
-                  { text: 'Hasta 15 servicios', ok: true },
+                  { text: 'Servicios ilimitados', ok: true },
                   { text: 'Perfil destacado en búsquedas', ok: true },
                   { text: 'Reservas ilimitadas', ok: true },
                   { text: 'Soporte prioritario', ok: true },
@@ -506,7 +506,7 @@ export default function HomePage() {
 
               <div className="h-4 flex items-center mb-0.5">
                 {premData.key !== 'monthly' && (
-                  <span className="text-xs text-white/40 line-through">S/ 79.99 / mes</span>
+                  <span className="text-xs text-white/40 line-through">S/ 59.99 / mes</span>
                 )}
               </div>
               <div className="flex items-baseline gap-1 mb-0.5">

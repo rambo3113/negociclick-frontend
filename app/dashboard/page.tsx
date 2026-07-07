@@ -2210,7 +2210,7 @@ export default function DashboardPage() {
                 <div className="p-6">
                   {(() => {
                     const plan = subscription?.plan ?? 'FREE';
-                    const SERVICE_LIMITS: Record<string, number> = { FREE: 5, PRO: 15, PREMIUM: Infinity };
+                    const SERVICE_LIMITS: Record<string, number> = { FREE: 5, PRO: Infinity, PREMIUM: Infinity };
                     const limit = SERVICE_LIMITS[plan] ?? 3;
                     const atLimit = limit !== Infinity && services.length >= limit;
                     return (

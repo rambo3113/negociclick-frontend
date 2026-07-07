@@ -35,7 +35,7 @@ const FAQS_CLIENTES = [
 const FAQS_NEGOCIOS = [
   {
     q: '¿Cuánto cuesta publicar mi negocio?',
-    a: 'El plan Free es totalmente gratuito y te permite publicar hasta 5 servicios. Los planes PRO (S/ 29.99/mes) y PREMIUM (S/ 79.99/mes) desbloquean más servicios, visibilidad y herramientas.',
+    a: 'El plan Free es totalmente gratuito y te permite publicar hasta 5 servicios. Los planes PRO (S/ 29.99/mes) y PREMIUM (S/ 59.99/mes) desbloquean servicios ilimitados, más visibilidad y herramientas.',
   },
   {
     q: '¿Cómo activo mi negocio en la plataforma?',

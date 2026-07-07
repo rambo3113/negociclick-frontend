@@ -25,8 +25,8 @@ const PRO_PERIODS: { key: ProPeriod; label: string; perMonth: number; save: stri
 ];
 
 const PREMIUM_PERIODS: { key: PremiumPeriod; label: string; perMonth: number; save: string | null; total: number; months: number }[] = [
-  { key: 'monthly', label: 'Mensual', perMonth: 79.99, save: null,              total: 79.99,  months: 1  },
-  { key: 'annual',  label: 'Anual',   perMonth: 63.99, save: 'Ahorras S/ 192', total: 767.88, months: 12 },
+  { key: 'monthly', label: 'Mensual', perMonth: 59.99, save: null,              total: 59.99,  months: 1  },
+  { key: 'annual',  label: 'Anual',   perMonth: 47.99, save: 'Ahorras S/ 144', total: 575.88, months: 12 },
 ];
 
 interface PayingState {
@@ -340,13 +340,13 @@ export default function SubscriptionPage() {
             }
 
             <span className="inline-flex text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 mb-2">
-              15 servicios
+              Servicios ilimitados
             </span>
 
 
             <ul className="space-y-2 mb-4 flex-1">
               {[
-                { label: 'Hasta 15 servicios', ok: true },
+                { label: 'Servicios ilimitados', ok: true },
                 { label: 'Perfil destacado en búsquedas', ok: true },
                 { label: 'Reservas ilimitadas', ok: true },
                 { label: 'Soporte prioritario', ok: true },
@@ -398,7 +398,7 @@ export default function SubscriptionPage() {
 
             {/* Price */}
             <div className="flex items-baseline gap-1.5 mb-0.5">
-              {premData.key !== 'monthly' && <span className="text-sm text-gray-300 line-through">S/ 79.99</span>}
+              {premData.key !== 'monthly' && <span className="text-sm text-gray-300 line-through">S/ 59.99</span>}
               <span className="text-3xl font-black text-gray-900">S/ {premData.perMonth.toFixed(2)}</span>
               <span className="text-gray-400 text-xs">/ mes</span>
             </div>
