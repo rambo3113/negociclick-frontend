@@ -13,10 +13,12 @@ import {
   Zap, Crown, Sparkles, Pencil, Save, Image, Upload, Clock3, BarChart2, Lock,
   Mail, ClipboardCopy, Banknote, CalendarOff, Loader2,
   BadgeCheck, Camera, Eye, ChevronLeft, ChevronRight,
+  CreditCard,
 } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 import FeaturedSection from '@/components/FeaturedSection';
 import TwoFACard from '@/components/TwoFACard';
+import CobrosTab from '@/components/CobrosTab';
 
 interface Subscription { plan: string; commissionRate: number; endDate?: string | null; }
 
@@ -54,7 +56,7 @@ interface BusinessHour {
 
 interface Photo { id: string; url: string; caption?: string | null; order: number; }
 
-type Tab = 'Reservas' | 'Negocios' | 'Servicios' | 'Horarios' | 'Fotos' | 'Perfil' | 'Ingresos' | 'Agenda' | 'Analíticas';
+type Tab = 'Reservas' | 'Negocios' | 'Servicios' | 'Horarios' | 'Fotos' | 'Perfil' | 'Ingresos' | 'Agenda' | 'Analíticas' | 'Cobros';
 
 interface BusinessAnalytics {
   views: number;
@@ -1280,7 +1282,7 @@ export default function DashboardPage() {
             {/* Tabs */}
             <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
               <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide">
-                {(['Reservas', 'Ingresos', 'Analíticas', 'Agenda', 'Negocios', 'Servicios', 'Horarios', 'Fotos', 'Perfil'] as Tab[]).map(t => (
+                {(['Reservas', 'Ingresos', 'Cobros', 'Analíticas', 'Agenda', 'Negocios', 'Servicios', 'Horarios', 'Fotos', 'Perfil'] as Tab[]).map(t => (
                   <button
                     key={t}
                     onClick={() => setTab(t)}
@@ -1296,6 +1298,7 @@ export default function DashboardPage() {
                     {t === 'Ingresos'   && <Banknote    className="w-3.5 h-3.5" />}
                     {t === 'Analíticas' && <BarChart2  className="w-3.5 h-3.5" />}
                     {t === 'Agenda'     && <CalendarOff className="w-3.5 h-3.5" />}
+                    {t === 'Cobros'     && <CreditCard  className="w-3.5 h-3.5" />}
                     {t === 'Reservas' ? catConfig.termPlural : t}
                     {t === 'Reservas' && bookings.length > 0 && (
                       <span className={`text-xs px-1.5 py-0.5 rounded-full ${tab === t ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'}`}>
@@ -1656,6 +1659,14 @@ export default function DashboardPage() {
                     </>
                   )}
                 </div>
+              )}
+
+              {/* ── TAB: COBROS ── */}
+              {tab === 'Cobros' && (
+                <CobrosTab
+                  bizId={selectedBizId!}
+                  plan={subscription?.plan ?? 'FREE'}
+                />
               )}
 
               {/* ── TAB: ANALÍTICAS ── */}

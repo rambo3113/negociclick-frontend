@@ -59,6 +59,9 @@ interface Business {
   reviews: Review[];
   owner: { id: string; name: string; email: string; avatar?: string | null };
   ownerPlan?: string;
+  onlinePaymentEnabled?: boolean;
+  culqiPublicKey?: string | null;
+  paymentInstructions?: string | null;
   slogan?: string;
   coverImage?: string;
   featured?: boolean;
@@ -228,7 +231,7 @@ export default function BusinessDetailPage() {
         orderTotal: cartTotal,
         deliveryAddress,
       });
-      if (business?.ownerPlan === 'PREMIUM') {
+      if (business?.onlinePaymentEnabled) {
         let payRes;
         try {
           payRes = await api.post('/payments', { bookingId: res.data.booking.id });
@@ -364,7 +367,7 @@ export default function BusinessDetailPage() {
       });
       const newBooking = bookingRes.data.booking;
 
-      if (business?.ownerPlan === 'PREMIUM') {
+      if (business?.onlinePaymentEnabled) {
         let paymentRes;
         try {
           paymentRes = await api.post('/payments', { bookingId: newBooking.id });
@@ -394,7 +397,7 @@ export default function BusinessDetailPage() {
       setBookingMinute('00');
       setBookingAmPm('AM');
       setNotes('');
-      if (!business || business.ownerPlan !== 'PREMIUM') setSelectedServices([]);
+      if (!business || !business.onlinePaymentEnabled) setSelectedServices([]);
     } catch (err: any) {
       setBookingError(err.response?.data?.error || 'Error al crear reserva');
     } finally {
@@ -1087,14 +1090,14 @@ export default function BusinessDetailPage() {
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : cart.length === 0 ? (
                         'Agrega productos al carrito'
-                      ) : business?.ownerPlan === 'PREMIUM' ? (
+                      ) : business?.onlinePaymentEnabled ? (
                         <><Package className="w-4 h-4" /> Pedir y pagar</>
                       ) : (
                         <><Package className="w-4 h-4" /> Enviar pedido</>
                       )}
                     </button>
                     <p className="text-xs text-gray-400 text-center">
-                      {business?.ownerPlan === 'PREMIUM'
+                      {business?.onlinePaymentEnabled
                         ? 'Pago seguro · Tarjeta de crédito, débito o Yape'
                         : 'El negocio coordinará la entrega contigo'}
                     </p>
@@ -1103,7 +1106,25 @@ export default function BusinessDetailPage() {
               )
             ) : (
               /* ── APPOINTMENT SIDEBAR ── */
-              business?.ownerPlan !== 'FREE' && (
+              business?.ownerPlan === 'FREE' ? (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+                  <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <AlertTriangle className="w-6 h-6 text-amber-500" />
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-1">Pedidos no disponibles</h3>
+                  <p className="text-sm text-gray-500 mb-4">Este negocio aún no recibe pedidos online. Contáctalos directamente.</p>
+                  {business.phone && (
+                    <a
+                      href={`https://wa.me/${business.phone.replace(/\D/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold text-sm transition"
+                    >
+                      <MessageCircle className="w-4 h-4" /> Contactar por WhatsApp
+                    </a>
+                  )}
+                </div>
+              ) : (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               {bookingSuccess ? (
                 <div className="p-8 text-center">
@@ -1113,11 +1134,17 @@ export default function BusinessDetailPage() {
                   <h3 className="font-bold text-gray-900 text-lg mb-1">
                     {bookingPaid ? '¡Reserva confirmada!' : '¡Reserva creada!'}
                   </h3>
-                  <p className="text-sm text-gray-400 mb-5">
+                  <p className="text-sm text-gray-400 mb-3">
                     {bookingPaid
                       ? 'Tu pago fue procesado exitosamente. Nos vemos pronto.'
-                      : 'Tu cita está agendada. Recuerda pagar en el local.'}
+                      : 'Tu cita está agendada.'}
                   </p>
+                  {!bookingPaid && business.paymentInstructions && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-left mb-4">
+                      <p className="text-xs font-semibold text-amber-800 mb-1">Instrucciones de pago</p>
+                      <p className="text-sm text-amber-700 whitespace-pre-line">{business.paymentInstructions}</p>
+                    </div>
+                  )}
                   <Link
                     href="/bookings"
                     className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-indigo-200 transition-all mb-3"
@@ -1273,7 +1300,7 @@ export default function BusinessDetailPage() {
                         'Selecciona un servicio'
                       ) : !bookingDate ? (
                         'Elige una fecha'
-                      ) : business?.ownerPlan === 'PREMIUM' ? (
+                      ) : business?.onlinePaymentEnabled ? (
                         <><Calendar className="w-4 h-4" /> Reservar y pagar</>
                       ) : (
                         <><Calendar className="w-4 h-4" /> Reservar ahora</>
@@ -1281,9 +1308,9 @@ export default function BusinessDetailPage() {
                     </button>
 
                     <p className="text-xs text-gray-400 text-center">
-                      {business?.ownerPlan === 'PREMIUM'
+                      {business?.onlinePaymentEnabled
                         ? 'Pago seguro · Tarjeta de crédito, débito o Yape'
-                        : 'Reserva gratis · Paga en el local'}
+                        : 'Reserva gratis · El negocio te contactará'}
                     </p>
                   </form>
                 </>
@@ -1373,6 +1400,7 @@ export default function BusinessDetailPage() {
             totalAmount: premiumPayment.booking.totalAmount,
           }}
           paymentId={premiumPayment.paymentId}
+          publicKey={business.culqiPublicKey}
           isOrder={isOrderCategory}
           onSuccess={() => {
             setPremiumPayment(null);

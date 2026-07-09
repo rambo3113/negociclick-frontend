@@ -34,11 +34,12 @@ interface Props {
   onSuccess: () => void;
   onClose: () => void;
   isOrder?: boolean;
+  publicKey?: string | null;
 }
 
 type Step = 'summary' | 'processing' | 'success';
 
-export default function CulqiPaymentModal({ booking, paymentId, onSuccess, onClose, isOrder = false }: Props) {
+export default function CulqiPaymentModal({ booking, paymentId, onSuccess, onClose, isOrder = false, publicKey: propPublicKey }: Props) {
   const { user } = useAuth();
   const [culqiReady, setCulqiReady] = useState(false);
   const [step, setStep] = useState<Step>('summary');
@@ -52,10 +53,10 @@ export default function CulqiPaymentModal({ booking, paymentId, onSuccess, onClo
 
   const openCulqi = () => {
     if (!window.Culqi) return;
-    const publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY;
+    const publicKey = propPublicKey ?? process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY;
     if (!publicKey) {
       setError('El pago con tarjeta no está disponible ahora mismo. Contacta a soporte.');
-      console.error('[CulqiPaymentModal] Falta NEXT_PUBLIC_CULQI_PUBLIC_KEY — no se puede abrir el checkout.');
+      console.error('[CulqiPaymentModal] Falta publicKey — no se puede abrir el checkout.');
       return;
     }
     setError('');
