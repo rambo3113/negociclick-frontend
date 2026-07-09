@@ -80,8 +80,14 @@ export default function CulqiSubscriptionModal({ plan, period, perMonth, totalAm
 
   const openCulqi = () => {
     if (!window.Culqi) return;
+    const publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY;
+    if (!publicKey) {
+      setError('El pago con tarjeta no está disponible ahora mismo. Contacta a soporte.');
+      console.error('[CulqiSubscriptionModal] Falta NEXT_PUBLIC_CULQI_PUBLIC_KEY — no se puede abrir el checkout.');
+      return;
+    }
     setError('');
-    window.Culqi.publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY!;
+    window.Culqi.publicKey = publicKey;
     window.Culqi.settings({
       title: 'NegociClick',
       currency: 'PEN',
