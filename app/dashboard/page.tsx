@@ -18,6 +18,7 @@ import {
 import { useToast } from '@/components/Toast';
 import FeaturedSection from '@/components/FeaturedSection';
 import TwoFACard from '@/components/TwoFACard';
+import GoogleConnectionCard from '@/components/GoogleConnectionCard';
 import CobrosTab from '@/components/CobrosTab';
 
 interface Subscription { plan: string; commissionRate: number; endDate?: string | null; }
@@ -2701,8 +2702,9 @@ export default function DashboardPage() {
                         {savingProfile ? 'Guardando...' : 'Guardar perfil'}
                       </button>
 
-                      {/* ── Seguridad: 2FA ── */}
-                      <div className="border-t border-gray-100 pt-6 mt-2">
+                      {/* ── Seguridad: Google + 2FA ── */}
+                      <div className="border-t border-gray-100 pt-6 mt-2 space-y-4">
+                        <GoogleConnectionCard />
                         <TwoFACard />
                       </div>
                     </div>

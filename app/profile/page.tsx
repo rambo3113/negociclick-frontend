@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth';
 import api from '@/lib/api';
 import { useToast } from '@/components/Toast';
 import TwoFACard from '@/components/TwoFACard';
+import GoogleConnectionCard from '@/components/GoogleConnectionCard';
 import { User, Mail, Phone, Shield, Pencil, Save, Lock, Eye, EyeOff, Calendar, X, Loader2 } from 'lucide-react';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -251,6 +252,11 @@ export default function ProfilePage() {
               <p className="text-sm text-gray-400">••••••••••••</p>
             </div>
           )}
+        </div>
+
+        {/* Google */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <GoogleConnectionCard />
         </div>
 
         {/* 2FA */}

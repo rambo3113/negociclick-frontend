@@ -3,9 +3,11 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { useAuth } from '@/lib/auth';
 import api from '@/lib/api';
 import Logo from '@/components/Logo';
+import GoogleIcon from '@/components/GoogleIcon';
 import {
   Eye, EyeOff, AlertCircle, ArrowRight,
   User, Store, Mail, Phone, Lock, Check,
@@ -139,6 +141,16 @@ function RegisterPageContent() {
   };
 
   const setRole = (role: Role) => setForm(f => ({ ...f, role }));
+
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const handleGoogleSignIn = () => {
+    setGoogleLoading(true);
+    setError('');
+    // Nota: Google OAuth siempre crea la cuenta con role CLIENT (así lo
+    // decide el backend en /auth/google-callback). Si el usuario quiere
+    // vender, puede cambiar de rol después desde el dashboard.
+    signIn('google', { callbackUrl: '/auth/google/finish' });
+  };
 
   const pwdBarColor =
     pwdScore === 0 ? 'bg-gray-200' :
@@ -275,6 +287,24 @@ function RegisterPageContent() {
                 <span>{error}</span>
               </div>
             )}
+
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={googleLoading}
+              className="w-full flex items-center justify-center gap-2.5 border border-gray-200 text-gray-700 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 mb-5"
+            >
+              {googleLoading
+                ? <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                : <GoogleIcon className="w-4 h-4" />}
+              Registrarse con Google
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="flex-1 h-px bg-gray-100" />
+              <span className="text-xs text-gray-400">o regístrate con email</span>
+              <div className="flex-1 h-px bg-gray-100" />
+            </div>
 
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
 

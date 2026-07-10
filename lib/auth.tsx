@@ -12,6 +12,9 @@ export interface User {
   phone?: string | null;
   avatar?: string | null;
   emailVerified?: boolean;
+  googleId?: string | null;
+  googleEmail?: string | null;
+  hasPassword?: boolean;
 }
 
 export interface TwoFactorChallenge {

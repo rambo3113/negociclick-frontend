@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth";
 import { ToastProvider } from "@/components/Toast";
 import ChatWidget from "@/components/ChatWidget";
 import CookieBanner from "@/components/CookieBanner";
+import NextAuthSessionProvider from "@/components/NextAuthSessionProvider";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -48,13 +49,15 @@ export default function RootLayout({
   return (
     <html lang="es" className="h-full">
       <body className={`${geist.className} min-h-full flex flex-col bg-gray-50`}>
-        <AuthProvider>
-          <ToastProvider>
-            {children}
-            <ChatWidget />
-            <CookieBanner />
-          </ToastProvider>
-        </AuthProvider>
+        <NextAuthSessionProvider>
+          <AuthProvider>
+            <ToastProvider>
+              {children}
+              <ChatWidget />
+              <CookieBanner />
+            </ToastProvider>
+          </AuthProvider>
+        </NextAuthSessionProvider>
       </body>
     </html>
   );

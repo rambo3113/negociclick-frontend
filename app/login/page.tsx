@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { useAuth } from '@/lib/auth';
 import Logo from '@/components/Logo';
+import GoogleIcon from '@/components/GoogleIcon';
 import api from '@/lib/api';
 import {
   Eye, EyeOff, AlertCircle, ArrowRight,
@@ -91,8 +93,31 @@ export default function LoginPage() {
   const [tempToken, setTempToken] = useState('');
   const [totpCode, setTotpCode] = useState('');
   const [backupMode, setBackupMode] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const cfg = ROLE_CONFIG[role];
+
+  // Retomar el flujo si venimos de /auth/google/finish: puede traer un error,
+  // o un pedido de 2FA (el tempToken viaja por sessionStorage, no por la URL).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const errParam = params.get('error');
+    if (errParam) setError(errParam);
+    if (params.get('google2fa') === '1') {
+      const stored = sessionStorage.getItem('google2faTempToken');
+      if (stored) {
+        sessionStorage.removeItem('google2faTempToken');
+        setTempToken(stored);
+        setTwoFactorMode(true);
+      }
+    }
+  }, []);
+
+  const handleGoogleSignIn = () => {
+    setGoogleLoading(true);
+    setError('');
+    signIn('google', { callbackUrl: '/auth/google/finish' });
+  };
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -309,7 +334,26 @@ export default function LoginPage() {
                 </button>
               </form>
             ) : (
-              /* ── Paso 1: email + contraseña ── */
+              /* ── Paso 1: Google + email/contraseña ── */
+              <>
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={googleLoading}
+                  className="w-full flex items-center justify-center gap-2.5 border border-gray-200 text-gray-700 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 mb-5"
+                >
+                  {googleLoading
+                    ? <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                    : <GoogleIcon className="w-4 h-4" />}
+                  Continuar con Google
+                </button>
+
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="flex-1 h-px bg-gray-100" />
+                  <span className="text-xs text-gray-400">o continúa con email</span>
+                  <div className="flex-1 h-px bg-gray-100" />
+                </div>
+
               <form onSubmit={handleSubmit} className="space-y-4" noValidate>
 
                 {/* Email */}
@@ -376,6 +420,7 @@ export default function LoginPage() {
                   }
                 </button>
               </form>
+              </>
             )}
 
             {/* Divisor */}
