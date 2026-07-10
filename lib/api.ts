@@ -28,6 +28,19 @@ const processQueue = (error: unknown, token: string | null) => {
 api.interceptors.response.use(
   res => res,
   async error => {
+    // Enriquecer el error con un mensaje legible y loguear siempre
+    if (error.response) {
+      // El backend respondió con un código de error (4xx / 5xx)
+      console.error(`[api] HTTP ${error.response.status} — ${error.config?.url ?? '?'}`);
+      error.userMessage = error.response.data?.error
+        ?? `Error del servidor (${error.response.status})`;
+    } else if (error.request) {
+      // La solicitud se envió pero no llegó respuesta (red caída, timeout, CORS, etc.)
+      error.userMessage = 'No se pudo conectar al servidor. Verifica tu conexión a internet.';
+    } else {
+      error.userMessage = 'Error inesperado al procesar la solicitud.';
+    }
+
     const original = error.config;
     if (error.response?.status !== 401 || original._retry) {
       return Promise.reject(error);
