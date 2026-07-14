@@ -73,6 +73,7 @@ interface Business {
   paymentInstructions?: string | null;
   slogan?: string;
   coverImage?: string;
+  heroBannerImageUrl?: string | null;
   featured?: boolean;
   subcategories?: Subcategory[];
 }
@@ -175,6 +176,13 @@ export default function BusinessDetailPage() {
   const [orderLoading, setOrderLoading] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderError, setOrderError] = useState('');
+
+  // Review modal
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
 
   // orderMode viene del backend; se usa la categoría solo como fallback si aún no llega
   const isOrderCategory = business
@@ -340,8 +348,11 @@ export default function BusinessDetailPage() {
   }, [business]);
 
   const carouselSlides = useMemo(() => {
-    if (!business || business.ownerPlan === 'FREE') return [];
+    if (!business) return [];
     const slides: string[] = [];
+    // heroBannerImageUrl is always shown for any plan (incentive for FREE too)
+    if (business.heroBannerImageUrl) slides.push(resolveUrl(business.heroBannerImageUrl));
+    if (business.ownerPlan === 'FREE') return slides;
     if (business.coverImage) slides.push(resolveUrl(business.coverImage));
     photos.forEach(p => {
       const url = resolveUrl(p.url);
@@ -430,6 +441,27 @@ export default function BusinessDetailPage() {
       setBookingError(err.response?.data?.error || 'Error al crear reserva');
     } finally {
       setBookingLoading(false);
+    }
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) { router.push('/login'); return; }
+    setReviewLoading(true);
+    try {
+      const res = await api.post(`/businesses/${id}/reviews`, { rating: reviewRating, comment: reviewComment.trim() || undefined });
+      setBusiness(prev => prev ? {
+        ...prev,
+        reviews: [res.data.review, ...prev.reviews].slice(0, 5),
+        totalReviews: (prev.totalReviews ?? 0) + 1,
+      } : prev);
+      setReviewSuccess(true);
+      setReviewComment('');
+      setReviewRating(5);
+    } catch (err: any) {
+      toast.show(err.response?.data?.error || 'Error al enviar la reseña', 'error');
+    } finally {
+      setReviewLoading(false);
     }
   };
 
@@ -888,15 +920,16 @@ export default function BusinessDetailPage() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between">
               <div>
-                <h2 className="font-bold text-gray-900 text-lg">Reseñas</h2>
-                {business.totalReviews > 0 && (
-                  <p className="text-sm text-gray-400 mt-0.5">{business.totalReviews} opiniones de clientes</p>
+                <h2 className="font-bold text-gray-900 text-lg">Reseñas de clientes</h2>
+                {(business.totalReviews ?? 0) > 0 && (
+                  <p className="text-sm text-gray-400 mt-0.5">{business.totalReviews} opiniones verificadas</p>
                 )}
               </div>
               {business.averageRating && (
                 <div className="text-center">
                   <p className="text-3xl font-black text-gray-900">{business.averageRating}</p>
                   <StarRow rating={Math.round(business.averageRating)} size="sm" />
+                  <p className="text-xs text-gray-400 mt-0.5">de 5</p>
                 </div>
               )}
             </div>
@@ -909,10 +942,10 @@ export default function BusinessDetailPage() {
             ) : (
               <div className="divide-y divide-gray-50">
                 {business.reviews.map(review => (
-                  <div key={review.id} className="px-6 py-5">
+                  <div key={review.id} className="px-6 py-5 border-l-4 border-l-transparent hover:border-l-indigo-300 transition-colors">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                           {review.client.name.charAt(0).toUpperCase()}
                         </div>
                         <span className="font-semibold text-gray-900 text-sm">{review.client.name}</span>
@@ -931,6 +964,34 @@ export default function BusinessDetailPage() {
                 ))}
               </div>
             )}
+
+            {/* Footer: Ver todas + Dejar reseña */}
+            <div className="px-6 py-4 border-t border-gray-50 flex items-center gap-3 flex-wrap">
+              {(business.totalReviews ?? 0) > 5 && (
+                <Link
+                  href={`/businesses/${id}/reviews`}
+                  className="text-sm text-indigo-600 font-semibold hover:text-indigo-800 transition"
+                >
+                  Ver todas las reseñas ({business.totalReviews}) →
+                </Link>
+              )}
+              {user && !isOwner && (
+                <button
+                  onClick={() => { setShowReviewModal(true); setReviewSuccess(false); }}
+                  className="ml-auto flex items-center gap-1.5 text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-xl transition"
+                >
+                  <Star className="w-4 h-4" /> Dejar reseña
+                </button>
+              )}
+              {!user && (
+                <Link
+                  href="/login"
+                  className="ml-auto text-sm text-indigo-600 font-semibold hover:underline"
+                >
+                  Inicia sesión para dejar una reseña
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1453,6 +1514,85 @@ export default function BusinessDetailPage() {
           }}
           onClose={() => setPremiumPayment(null)}
         />
+      )}
+
+      {/* ── Review Modal ── */}
+      {showReviewModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+          onClick={() => setShowReviewModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-black text-gray-900 text-lg">Dejar reseña</h3>
+              <button onClick={() => setShowReviewModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {reviewSuccess ? (
+              <div className="text-center py-6">
+                <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Star className="w-7 h-7 text-green-600 fill-green-600" />
+                </div>
+                <p className="font-bold text-gray-900 mb-1">¡Gracias por tu reseña!</p>
+                <p className="text-sm text-gray-400 mb-4">Tu opinión ayuda a otros clientes.</p>
+                <button
+                  onClick={() => setShowReviewModal(false)}
+                  className="text-sm text-indigo-600 font-semibold hover:underline"
+                >
+                  Cerrar
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                {/* Star selector */}
+                <div>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Calificación</p>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setReviewRating(n)}
+                        className="transition-transform hover:scale-110"
+                      >
+                        <Star className={`w-8 h-8 ${n <= reviewRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Comentario <span className="font-normal text-gray-400">(opcional)</span>
+                  </label>
+                  <textarea
+                    value={reviewComment}
+                    onChange={e => setReviewComment(e.target.value)}
+                    rows={3}
+                    maxLength={500}
+                    placeholder="Cuéntanos tu experiencia…"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  />
+                  <p className="text-xs text-gray-400 text-right mt-1">{reviewComment.length}/500</p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={reviewLoading}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {reviewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Star className="w-4 h-4" />}
+                  {reviewLoading ? 'Enviando…' : 'Enviar reseña'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Lightbox */}

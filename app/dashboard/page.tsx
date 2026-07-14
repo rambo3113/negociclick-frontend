@@ -571,10 +571,13 @@ export default function DashboardPage() {
 
   // Perfil PRO
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const heroInputRef = useRef<HTMLInputElement>(null);
   const [profileForm, setProfileForm] = useState({ slogan: '', description: '' });
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [uploadingHero, setUploadingHero] = useState(false);
+  const [heroPreview, setHeroPreview] = useState<string | null>(null);
 
   // Avatar
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -899,6 +902,27 @@ export default function DashboardPage() {
     } finally {
       setUploadingCover(false);
       if (coverInputRef.current) coverInputRef.current.value = '';
+    }
+  };
+
+  const handleUploadHero = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedBizId) return;
+    if (file.size > 5 * 1024 * 1024) { toast.show('La imagen no puede superar 5 MB', 'error'); return; }
+    setUploadingHero(true);
+    const formData = new FormData();
+    formData.append('hero', file);
+    try {
+      const res = await api.post(`/businesses/${selectedBizId}/hero`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setHeroPreview(resolveUrl(res.data.heroBannerImageUrl));
+      toast.show('Foto hero actualizada', 'success');
+    } catch {
+      toast.show('Error al subir la foto hero', 'error');
+    } finally {
+      setUploadingHero(false);
+      if (heroInputRef.current) heroInputRef.current.value = '';
     }
   };
 
@@ -2633,9 +2657,42 @@ export default function DashboardPage() {
                         <p className="text-sm text-gray-500">Esta información aparece en tu página pública.</p>
                       </div>
 
+                      {/* ── Foto hero banner ── */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Foto de portada (hero banner)</label>
+                        <p className="text-xs text-gray-400 mb-2">Aparece como fondo grande en la página de tu negocio. 1200×300 recomendado, máx 5 MB.</p>
+                        <div
+                          className="relative w-full rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 hover:border-indigo-400 transition-colors cursor-pointer bg-gradient-to-r from-indigo-500 to-purple-600 group"
+                          style={{ height: 120 }}
+                          onClick={() => heroInputRef.current?.click()}
+                        >
+                          {heroPreview ? (
+                            <>
+                              <img src={heroPreview} alt="Hero banner" className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <div className="flex items-center gap-2 bg-white text-gray-800 font-semibold text-sm px-4 py-2 rounded-xl">
+                                  <Upload className="w-4 h-4" /> Cambiar hero
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center h-full gap-1.5">
+                              {uploadingHero
+                                ? <div className="w-7 h-7 border-4 border-white border-t-transparent rounded-full animate-spin" />
+                                : <>
+                                    <Image className="w-7 h-7 text-white/60" />
+                                    <p className="text-sm text-white/80 font-medium">Subir foto hero</p>
+                                  </>
+                              }
+                            </div>
+                          )}
+                        </div>
+                        <input ref={heroInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleUploadHero} className="hidden" />
+                      </div>
+
                       {/* Foto de portada */}
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Foto de portada</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Foto de perfil / portada cuadrada</label>
                         <div
                           className="relative w-full h-44 rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 hover:border-indigo-400 transition-colors cursor-pointer bg-gray-50 group"
                           onClick={() => coverInputRef.current?.click()}
