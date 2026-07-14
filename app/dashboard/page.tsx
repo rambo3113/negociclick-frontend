@@ -20,6 +20,7 @@ import FeaturedSection from '@/components/FeaturedSection';
 import TwoFACard from '@/components/TwoFACard';
 import GoogleConnectionCard from '@/components/GoogleConnectionCard';
 import CobrosTab from '@/components/CobrosTab';
+import SubcategoryManager from '@/components/SubcategoryManager';
 
 interface Subscription { plan: string; commissionRate: number; endDate?: string | null; }
 
@@ -2439,6 +2440,15 @@ export default function DashboardPage() {
                         </div>
                       ))}
                     </div>
+                  )}
+
+                  {/* Subcategories */}
+                  {selectedBizId && selectedBiz && (
+                    <SubcategoryManager
+                      businessId={selectedBizId}
+                      businessCategory={selectedBiz.category}
+                      categoryLabel={CATEGORY_LABELS[selectedBiz.category] ?? selectedBiz.category}
+                    />
                   )}
                 </div>
               )}

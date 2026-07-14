@@ -34,6 +34,15 @@ interface Service {
   duration?: number;
   category: string;
   photo?: string | null;
+  subcategoryId?: string | null;
+  subcategory?: { id: string; name: string } | null;
+}
+
+interface Subcategory {
+  id: string;
+  name: string;
+  description?: string | null;
+  category: string;
 }
 
 interface Review {
@@ -65,6 +74,7 @@ interface Business {
   slogan?: string;
   coverImage?: string;
   featured?: boolean;
+  subcategories?: Subcategory[];
 }
 
 interface BusinessHour {
@@ -311,6 +321,24 @@ export default function BusinessDetailPage() {
   }, [bookingDate, bookingHour, bookingMinute, bookingAmPm, hours, availBlocks]);
 
   // Slides para el carousel: imagen de portada + fotos de galería
+  // Group services by subcategory for display
+  const servicesBySubcategory = useMemo(() => {
+    if (!business) return [];
+    const subs = business.subcategories ?? [];
+    const withSub = business.services.filter(s => s.subcategoryId);
+    const withoutSub = business.services.filter(s => !s.subcategoryId);
+    const groups: { label: string | null; services: Service[] }[] = [];
+    subs.forEach(sub => {
+      const svcs = withSub.filter(s => s.subcategoryId === sub.id);
+      if (svcs.length > 0) groups.push({ label: sub.name, services: svcs });
+    });
+    // Services not assigned to any subcategory
+    if (withoutSub.length > 0) groups.push({ label: null, services: withoutSub });
+    // If no subcategories at all, show all flat
+    if (subs.length === 0) return [{ label: null, services: business.services }];
+    return groups;
+  }, [business]);
+
   const carouselSlides = useMemo(() => {
     if (!business || business.ownerPlan === 'FREE') return [];
     const slides: string[] = [];
@@ -745,50 +773,61 @@ export default function BusinessDetailPage() {
                 ))}
               </div>
             ) : (
-              /* APPOINTMENT + PRO/PREMIUM: multi-service selection */
-              <div className="divide-y divide-gray-50">
-                {business.services.map(service => {
-                  const isSelected = selectedServices.some(s => s.id === service.id);
-                  return (
-                    <button
-                      key={service.id}
-                      onClick={() => toggleService(service)}
-                      className={`w-full text-left px-6 py-4 flex items-center gap-4 transition-all group ${isSelected ? 'bg-indigo-50' : 'hover:bg-gray-50'}`}
-                    >
-                      {service.photo && (
-                        <img
-                          src={resolveUrl(service.photo)}
-                          alt={service.name}
-                          className="w-14 h-14 rounded-xl object-cover object-center flex-shrink-0 border border-gray-100"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <p className={`font-semibold ${isSelected ? 'text-indigo-700' : 'text-gray-900'}`}>
-                            {service.name}
-                          </p>
-                          {isSelected && (
-                            <span className="text-xs bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full">Seleccionado</span>
-                          )}
-                        </div>
-                        {service.description && <p className="text-sm text-gray-400 truncate">{service.description}</p>}
-                        {service.duration && (
-                          <span className="inline-flex items-center gap-1 text-xs text-gray-400 mt-1">
-                            <Clock className="w-3 h-3" />{service.duration} min
-                          </span>
-                        )}
+              /* APPOINTMENT + PRO/PREMIUM: multi-service selection grouped by subcategory */
+              <div>
+                {servicesBySubcategory.map((group, gi) => (
+                  <div key={gi}>
+                    {group.label && (
+                      <div className="px-6 py-2 bg-gray-50 border-y border-gray-100">
+                        <span className="text-xs font-bold text-indigo-600 uppercase tracking-wide">{group.label}</span>
                       </div>
-                      <div className="flex items-center gap-3 flex-shrink-0">
-                        <span className={`text-lg font-black ${isSelected ? 'text-indigo-600' : 'text-gray-900'}`}>
-                          S/ {Number(service.price).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
-                        </span>
-                        <div className={`w-6 h-6 rounded-xl border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 group-hover:border-indigo-400'}`}>
-                          {isSelected && <CheckCircle className="w-4 h-4 text-white fill-white" />}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
+                    )}
+                    <div className="divide-y divide-gray-50">
+                      {group.services.map(service => {
+                        const isSelected = selectedServices.some(s => s.id === service.id);
+                        return (
+                          <button
+                            key={service.id}
+                            onClick={() => toggleService(service)}
+                            className={`w-full text-left px-6 py-4 flex items-center gap-4 transition-all group ${isSelected ? 'bg-indigo-50' : 'hover:bg-gray-50'}`}
+                          >
+                            {service.photo && (
+                              <img
+                                src={resolveUrl(service.photo)}
+                                alt={service.name}
+                                className="w-14 h-14 rounded-xl object-cover object-center flex-shrink-0 border border-gray-100"
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <p className={`font-semibold ${isSelected ? 'text-indigo-700' : 'text-gray-900'}`}>
+                                  {service.name}
+                                </p>
+                                {isSelected && (
+                                  <span className="text-xs bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full">Seleccionado</span>
+                                )}
+                              </div>
+                              {service.description && <p className="text-sm text-gray-400 truncate">{service.description}</p>}
+                              {service.duration && (
+                                <span className="inline-flex items-center gap-1 text-xs text-gray-400 mt-1">
+                                  <Clock className="w-3 h-3" />{service.duration} min
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              <span className={`text-lg font-black ${isSelected ? 'text-indigo-600' : 'text-gray-900'}`}>
+                                S/ {Number(service.price).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                              </span>
+                              <div className={`w-6 h-6 rounded-xl border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 group-hover:border-indigo-400'}`}>
+                                {isSelected && <CheckCircle className="w-4 h-4 text-white fill-white" />}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
