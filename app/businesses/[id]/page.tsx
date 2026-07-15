@@ -509,7 +509,7 @@ export default function BusinessDetailPage() {
               </div>
             </div>
             <Link
-              href="/dashboard"
+              href="/dashboard/promocion"
               className="flex-shrink-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:from-amber-600 hover:to-orange-600 transition"
             >
               Destacar mi negocio →
@@ -523,7 +523,7 @@ export default function BusinessDetailPage() {
             <span className="text-xl">✅</span>
             <p className="text-sm text-indigo-800">
               <strong>Tu negocio está Destacado</strong> — aparece primero en los resultados.{' '}
-              <Link href="/dashboard" className="underline hover:text-indigo-600">Gestionar desde el dashboard</Link>
+              <Link href="/dashboard/promocion" className="underline hover:text-indigo-600">Gestionar desde el dashboard</Link>
             </p>
           </div>
         </div>
