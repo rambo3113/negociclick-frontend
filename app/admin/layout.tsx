@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import {
   LayoutDashboard, Store, CreditCard, FileText, ScrollText,
-  LogOut, ShieldCheck, ChevronRight, Loader2,
+  LogOut, ShieldCheck, ChevronRight, Loader2, Gift,
 } from 'lucide-react';
 
 const NAV = [
@@ -15,6 +15,7 @@ const NAV = [
   { href: '/admin/subscriptions', label: 'Suscripciones', icon: CreditCard },
   { href: '/admin/payments',      label: 'Pagos',         icon: CreditCard },
   { href: '/admin/reports',       label: 'Reportes',      icon: FileText },
+  { href: '/admin/trials',        label: 'Trials',        icon: Gift },
   { href: '/admin/logs',          label: 'Auditoría',     icon: ScrollText },
 ];
 
