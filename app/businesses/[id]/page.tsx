@@ -177,6 +177,12 @@ export default function BusinessDetailPage() {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderError, setOrderError] = useState('');
 
+  // Delivery system SIMPLE
+  const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup');
+  const [deliveryZoneName, setDeliveryZoneName] = useState('');
+  const [deliveryCost, setDeliveryCost] = useState(0);
+  const [deliveryMethods, setDeliveryMethods] = useState<any>(null);
+
   // Review modal
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
@@ -246,8 +252,12 @@ export default function BusinessDetailPage() {
         businessId: business?.id,
         date: deliveryISO,
         notes: structured,
-        orderTotal: cartTotal,
+        orderTotal: cartTotal + deliveryCost,
         deliveryAddress,
+        // Delivery system
+        deliveryMethod,
+        deliveryZoneName,
+        deliveryCost,
       });
       if (business?.onlinePaymentEnabled) {
         let payRes;
@@ -263,6 +273,7 @@ export default function BusinessDetailPage() {
         });
       } else {
         setCart([]); setDeliveryAddress(''); setDeliveryDate(''); setOrderNotes('');
+        setDeliveryMethod('pickup'); setDeliveryZoneName(''); setDeliveryCost(0);
         setOrderSuccess(true);
       }
     } catch (err: any) {
@@ -287,11 +298,13 @@ export default function BusinessDetailPage() {
       api.get(`/businesses/${id}/hours`).catch(() => ({ data: { hours: [] } })),
       api.get(`/businesses/${id}/photos`).catch(() => ({ data: { photos: [] } })),
       api.get(`/businesses/${id}/availability`).catch(() => ({ data: { blocks: [] } })),
-    ]).then(([bizRes, hoursRes, photosRes, availRes]) => {
+      api.get(`/businesses/${id}/delivery-methods`).catch(() => ({ data: { methods: null } })),
+    ]).then(([bizRes, hoursRes, photosRes, availRes, deliveryRes]) => {
       setBusiness(bizRes.data.business);
       setHours(hoursRes.data.hours ?? []);
       setPhotos(photosRes.data.photos ?? []);
       setAvailBlocks(availRes.data.blocks ?? []);
+      setDeliveryMethods(deliveryRes.data.methods);
       // Registrar vista (fire-and-forget)
       api.post(`/businesses/${id}/view`).catch(() => {});
     }).catch(() => {})
@@ -1126,10 +1139,22 @@ export default function BusinessDetailPage() {
                           </div>
                         ))}
                       </div>
+                      {deliveryMethod === 'delivery' && deliveryCost > 0 && (
+                        <>
+                          <div className="px-4 py-2 border-t border-gray-100 bg-white flex items-center justify-between text-sm text-gray-600">
+                            <span>Subtotal</span>
+                            <span>S/ {cartTotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <div className="px-4 py-2 bg-white flex items-center justify-between text-sm text-orange-600">
+                            <span>Delivery ({deliveryZoneName})</span>
+                            <span>S/ {deliveryCost.toFixed(2)}</span>
+                          </div>
+                        </>
+                      )}
                       <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
                         <span className="text-sm font-bold text-gray-700">Total</span>
                         <span className="text-lg font-black text-indigo-600">
-                          S/ {cartTotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                          S/ {(cartTotal + deliveryCost).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
                         </span>
                       </div>
                     </>
@@ -1142,6 +1167,62 @@ export default function BusinessDetailPage() {
                         {orderError}
                       </div>
                     )}
+                    
+                    {/* Delivery method selector */}
+                    {deliveryMethods && (
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700">Método de entrega</label>
+                        {deliveryMethods.pickup?.enabled && (
+                          <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="delivery"
+                              value="pickup"
+                              checked={deliveryMethod === 'pickup'}
+                              onChange={() => { setDeliveryMethod('pickup'); setDeliveryCost(0); setDeliveryZoneName(''); }}
+                              className="w-4 h-4"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Retirar en tienda <span className="text-gray-400 font-normal">(S/ 0)</span></span>
+                          </label>
+                        )}
+                        {deliveryMethods.delivery?.enabled && (
+                          <>
+                            <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                              <input
+                                type="radio"
+                                name="delivery"
+                                value="delivery"
+                                checked={deliveryMethod === 'delivery'}
+                                onChange={() => setDeliveryMethod('delivery')}
+                                className="w-4 h-4"
+                              />
+                              <span className="text-sm font-medium text-gray-700">Envío a domicilio</span>
+                            </label>
+                            {deliveryMethod === 'delivery' && deliveryMethods.delivery?.zones && (
+                              <div className="ml-7 space-y-2">
+                                <select
+                                  value={deliveryZoneName}
+                                  onChange={(e) => {
+                                    const zone = deliveryMethods.delivery.zones.find((z: any) => z.name === e.target.value);
+                                    setDeliveryZoneName(e.target.value);
+                                    setDeliveryCost(zone ? Number(zone.cost) : 0);
+                                  }}
+                                  className="w-full p-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                >
+                                  <option value="">-- Selecciona zona --</option>
+                                  {deliveryMethods.delivery.zones.map((zone: any) => (
+                                    <option key={zone.id} value={zone.name}>
+                                      {zone.name} (S/ {Number(zone.cost).toFixed(2)})
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
                         <Truck className="w-4 h-4 text-indigo-400" />
