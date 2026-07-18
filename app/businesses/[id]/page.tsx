@@ -676,29 +676,7 @@ export default function BusinessDetailPage() {
             </div>
           )}
 
-          {/* Photo gallery */}
-          {photos.length > 0 && business?.ownerPlan !== 'FREE' && (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-50">
-                <h2 className="font-bold text-gray-900">Galería</h2>
-              </div>
-              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {photos.map((photo, i) => (
-                  <button
-                    key={photo.id}
-                    onClick={() => setLightboxPhoto(photo)}
-                    className={`relative overflow-hidden rounded-xl border border-gray-100 hover:opacity-90 transition-opacity ${i === 0 ? 'col-span-2 row-span-2 aspect-square' : 'aspect-square'}`}
-                  >
-                    <img
-                      src={resolveUrl(photo.url)}
-                      alt={photo.caption ?? 'Foto del negocio'}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          {null}
 
           {/* Services */}
           <div id="services-section" className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
