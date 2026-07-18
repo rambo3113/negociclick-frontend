@@ -111,7 +111,7 @@ export default function FeaturedSlider() {
 
                     {/* Content */}
                     <div className="p-1.5 xs:p-2 sm:p-4 md:p-5 lg:p-6 w-full overflow-hidden">
-                      <h3 className="font-bold text-[11px] xs:text-xs sm:text-lg md:text-xl lg:text-2xl text-gray-900 mb-0.5 xs:mb-1 group-hover:text-indigo-600 transition-colors truncate w-full">
+                      <h3 className="font-bold text-[9px] xs:text-xs sm:text-lg md:text-xl lg:text-2xl text-gray-900 mb-0.5 xs:mb-1 group-hover:text-indigo-600 transition-colors truncate w-full max-w-full break-words">
                         {business.name}
                       </h3>
                       <p className="text-[10px] xs:text-xs sm:text-sm text-amber-600 font-semibold mb-0.5 xs:mb-1 sm:mb-3 truncate w-full">
