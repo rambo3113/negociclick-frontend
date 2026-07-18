@@ -1306,6 +1306,7 @@ export default function DashboardPage() {
                   <Eye className="w-3 h-3 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Ver página pública</span><span className="sm:hidden">Ver</span>
                 </Link>
               </div>
+            )}
 
             {/* Tabs */}
             <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
