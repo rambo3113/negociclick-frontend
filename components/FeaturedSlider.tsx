@@ -47,18 +47,18 @@ export default function FeaturedSlider() {
   if (loading || !featured?.length) return null;
 
   return (
-    <section className="w-full bg-gradient-to-b from-indigo-50 to-white py-8 xs:py-10 sm:py-12 md:py-16 px-2 xs:px-3 sm:px-4 md:px-6">
+    <section className="w-full bg-gradient-to-b from-indigo-50 to-white py-6 xs:py-8 sm:py-12 md:py-16 px-1.5 xs:px-2 sm:px-4 md:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12">
-          <div className="flex items-center justify-center gap-1 xs:gap-2 mb-2 xs:mb-3">
-            <Star className="w-4 xs:w-5 sm:w-6 h-4 xs:h-5 sm:h-6 text-amber-500 fill-amber-500" />
-            <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
+        <div className="text-center mb-4 xs:mb-6 sm:mb-10 md:mb-12">
+          <div className="flex items-center justify-center gap-1 mb-1 xs:mb-2 sm:mb-3">
+            <Star className="w-3 xs:w-4 sm:w-6 h-3 xs:h-4 sm:h-6 text-amber-500 fill-amber-500" />
+            <h2 className="text-lg xs:text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
               Negocios Destacados
             </h2>
-            <Star className="w-4 xs:w-5 sm:w-6 h-4 xs:h-5 sm:h-6 text-amber-500 fill-amber-500" />
+            <Star className="w-3 xs:w-4 sm:w-6 h-3 xs:h-4 sm:h-6 text-amber-500 fill-amber-500" />
           </div>
-          <p className="text-gray-600 text-xs xs:text-sm sm:text-base md:text-lg">
+          <p className="text-gray-600 text-[10px] xs:text-xs sm:text-base md:text-lg">
             Los mejores negocios seleccionados para ti
           </p>
         </div>
@@ -89,7 +89,7 @@ export default function FeaturedSlider() {
                 <Link href={`/businesses/${business.id}`}>
                   <div className="group h-full bg-white rounded-lg xs:rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-amber-200 cursor-pointer">
                     {/* Image */}
-                    <div className="relative h-28 xs:h-32 sm:h-40 md:h-48 lg:h-56 xl:h-64 bg-gray-200 overflow-hidden">
+                    <div className="relative h-24 xs:h-28 sm:h-40 md:h-48 lg:h-56 xl:h-64 bg-gray-200 overflow-hidden">
                       {business.photo ? (
                         <img
                           src={business.photo}
@@ -103,40 +103,40 @@ export default function FeaturedSlider() {
                       )}
 
                       {/* Badge */}
-                      <div className="absolute top-1 right-1 xs:top-2 xs:right-2 sm:top-3 sm:right-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-1.5 xs:px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-bold flex items-center gap-0.5 xs:gap-1 shadow-lg">
-                        <Star className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 fill-current" />
+                      <div className="absolute top-0.5 right-0.5 xs:top-1 xs:right-1 sm:top-3 sm:right-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-1 xs:px-2 sm:px-3 py-0.25 xs:py-0.5 sm:py-1 rounded-full text-[9px] xs:text-xs font-bold flex items-center gap-0.25 xs:gap-0.5 sm:gap-1 shadow-lg">
+                        <Star className="w-1.5 h-1.5 xs:w-2 xs:h-2 sm:w-3 sm:h-3 fill-current" />
                         <span className="hidden sm:inline">DESTACADO</span>
                       </div>
                     </div>
 
                     {/* Content */}
-                    <div className="p-2 xs:p-3 sm:p-4 md:p-5 lg:p-6 overflow-hidden">
-                      <h3 className="font-bold text-xs xs:text-sm sm:text-lg md:text-xl lg:text-2xl text-gray-900 mb-0.5 xs:mb-1 group-hover:text-indigo-600 transition-colors truncate">
+                    <div className="p-1.5 xs:p-2 sm:p-4 md:p-5 lg:p-6 w-full overflow-hidden">
+                      <h3 className="font-bold text-[11px] xs:text-xs sm:text-lg md:text-xl lg:text-2xl text-gray-900 mb-0.5 xs:mb-1 group-hover:text-indigo-600 transition-colors truncate w-full">
                         {business.name}
                       </h3>
-                      <p className="text-xs xs:text-xs sm:text-sm text-amber-600 font-semibold mb-1 xs:mb-2 sm:mb-3 truncate">
+                      <p className="text-[10px] xs:text-xs sm:text-sm text-amber-600 font-semibold mb-0.5 xs:mb-1 sm:mb-3 truncate w-full">
                         {business.category}
                       </p>
 
-                      <p className="text-xs sm:text-sm text-gray-600 mb-2 xs:mb-3 line-clamp-2">
+                      <p className="text-[10px] xs:text-xs sm:text-sm text-gray-600 mb-1 xs:mb-2 line-clamp-2">
                         {business.description || 'Negocio destacado de NegociClick'}
                       </p>
 
-                      <div className="space-y-0.5 xs:space-y-1 sm:space-y-2 mb-2 xs:mb-3">
-                        <div className="flex items-center gap-1 xs:gap-2 min-w-0 text-xs sm:text-sm text-gray-700">
-                          <MapPin className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-indigo-500 flex-shrink-0" />
+                      <div className="space-y-0 xs:space-y-1 sm:space-y-2 mb-1 xs:mb-2">
+                        <div className="flex items-center gap-1 min-w-0 text-[10px] xs:text-xs sm:text-sm text-gray-700">
+                          <MapPin className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-4 sm:h-4 text-indigo-500 flex-shrink-0" />
                           <span className="truncate">{business.address || business.city}</span>
                         </div>
                         {business.phone && (
-                          <div className="flex items-center gap-1 xs:gap-2 min-w-0 text-xs sm:text-sm text-gray-700">
-                            <Phone className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-indigo-500 flex-shrink-0" />
-                            <span className="truncate">{business.phone}</span>
+                          <div className="flex items-center gap-1 min-w-0 text-[10px] xs:text-xs sm:text-sm text-gray-700">
+                            <Phone className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-4 sm:h-4 text-indigo-500 flex-shrink-0" />
+                            <span className="truncate text-[10px]">{business.phone}</span>
                           </div>
                         )}
                       </div>
 
                       <div className="pt-1 xs:pt-2 sm:pt-3 border-t border-gray-100">
-                        <button className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-1 xs:py-1.5 sm:py-2 rounded transition-all duration-300 text-xs sm:text-sm md:text-base">
+                        <button className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-0.5 xs:py-1.5 sm:py-2 rounded transition-all duration-300 text-[10px] xs:text-xs sm:text-sm md:text-base">
                           Ver Detalles
                         </button>
                       </div>
