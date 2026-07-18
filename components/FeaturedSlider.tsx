@@ -18,8 +18,7 @@ interface FeaturedBusiness {
   phone: string;
   address: string;
   photo: string | null;
-  photoAlt: string;
-  ownerName: string;
+  photoCaption: string;
 }
 
 export default function FeaturedSlider() {
@@ -98,7 +97,7 @@ export default function FeaturedSlider() {
                       {business.photo ? (
                         <img
                           src={business.photo}
-                          alt={business.photoAlt}
+                          alt={business.photoCaption}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
                       ) : (
