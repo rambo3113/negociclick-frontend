@@ -89,12 +89,12 @@ export default function FeaturedSlider() {
                 <Link href={`/businesses/${business.id}`}>
                   <div className="group h-full bg-white rounded-lg xs:rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-amber-200 cursor-pointer">
                     {/* Image */}
-                    <div className="relative h-20 xs:h-24 sm:h-40 md:h-48 lg:h-56 xl:h-64 bg-gray-200 overflow-hidden">
+                    <div className="relative h-40 xs:h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80 bg-gray-200 overflow-hidden">
                       {business.photo ? (
                         <img
                           src={business.photo}
                           alt={business.photoCaption}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-300"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-100">
@@ -103,43 +103,43 @@ export default function FeaturedSlider() {
                       )}
 
                       {/* Badge */}
-                      <div className="absolute top-0 right-0 xs:top-1 xs:right-1 sm:top-3 sm:right-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-0.5 xs:px-2 sm:px-3 py-0 xs:py-0.5 sm:py-1 rounded-b-lg xs:rounded-full text-[8px] xs:text-xs font-bold flex items-center gap-0.25 xs:gap-0.5 sm:gap-1 shadow-lg">
-                        <Star className="w-1 h-1 xs:w-2 xs:h-2 sm:w-3 sm:h-3 fill-current" />
+                      <div className="absolute top-1 right-1 xs:top-2 xs:right-2 sm:top-3 sm:right-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-1 xs:px-2 sm:px-3 py-0.5 xs:py-1 sm:py-1 rounded-full text-[9px] xs:text-xs font-bold flex items-center gap-0.5 xs:gap-1 shadow-lg">
+                        <Star className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 fill-current" />
                         <span className="hidden sm:inline">DESTACADO</span>
                       </div>
                     </div>
 
                     {/* Content */}
-                    <div className="p-1 xs:p-2 sm:p-4 md:p-5 lg:p-6 w-full overflow-hidden flex flex-col">
+                    <div className="p-2 xs:p-3 sm:p-4 md:p-5 lg:p-6 w-full overflow-hidden flex flex-col">
                       {/* Nombre - SIEMPRE visible, se adapta al espacio */}
-                      <h3 className="font-bold text-[10px] xs:text-sm sm:text-lg md:text-xl lg:text-2xl text-gray-900 mb-0.5 xs:mb-1 group-hover:text-indigo-600 transition-colors truncate w-full">
+                      <h3 className="font-bold text-xs xs:text-sm sm:text-lg md:text-xl lg:text-2xl text-gray-900 mb-0.5 xs:mb-1 group-hover:text-indigo-600 transition-colors truncate w-full">
                         {business.name}
                       </h3>
                       
                       {/* Categoría */}
-                      <p className="text-[9px] xs:text-xs sm:text-sm text-amber-600 font-semibold mb-0.5 xs:mb-1 sm:mb-3 truncate w-full">
+                      <p className="text-[10px] xs:text-xs sm:text-sm text-amber-600 font-semibold mb-1 xs:mb-2 sm:mb-3 truncate w-full">
                         {business.category}
                       </p>
 
-                      <p className="text-[9px] xs:text-xs sm:text-sm text-gray-600 mb-0.5 xs:mb-2 line-clamp-2">
+                      <p className="text-[10px] xs:text-sm text-gray-600 mb-1 xs:mb-2 line-clamp-2">
                         {business.description || 'Negocio destacado de NegociClick'}
                       </p>
 
-                      <div className="space-y-0 xs:space-y-1 sm:space-y-2 mb-0.5 xs:mb-2">
-                        <div className="flex items-center gap-0.5 xs:gap-1 min-w-0 text-[9px] xs:text-xs sm:text-sm text-gray-700">
-                          <MapPin className="w-2 h-2 xs:w-3 xs:h-3 sm:w-4 sm:h-4 text-indigo-500 flex-shrink-0" />
+                      <div className="space-y-1 xs:space-y-1 sm:space-y-2 mb-1 xs:mb-2">
+                        <div className="flex items-center gap-1 min-w-0 text-[10px] xs:text-xs sm:text-sm text-gray-700">
+                          <MapPin className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-indigo-500 flex-shrink-0" />
                           <span className="truncate">{business.address || business.city}</span>
                         </div>
                         {business.phone && (
-                          <div className="flex items-center gap-0.5 xs:gap-1 min-w-0 text-[9px] xs:text-xs sm:text-sm text-gray-700">
-                            <Phone className="w-2 h-2 xs:w-3 xs:h-3 sm:w-4 sm:h-4 text-indigo-500 flex-shrink-0" />
+                          <div className="flex items-center gap-1 min-w-0 text-[10px] xs:text-xs sm:text-sm text-gray-700">
+                            <Phone className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-indigo-500 flex-shrink-0" />
                             <span className="truncate">{business.phone}</span>
                           </div>
                         )}
                       </div>
 
-                      <div className="pt-0.5 xs:pt-2 sm:pt-3 border-t border-gray-100">
-                        <button className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-0.5 xs:py-1.5 sm:py-2 rounded transition-all duration-300 text-[9px] xs:text-xs sm:text-sm md:text-base">
+                      <div className="pt-1 xs:pt-2 sm:pt-3 border-t border-gray-100 mt-auto">
+                        <button className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-1 xs:py-1.5 sm:py-2 rounded transition-all duration-300 text-xs xs:text-sm sm:text-base">
                           Ver Detalles
                         </button>
                       </div>
