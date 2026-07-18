@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import FeaturedSlider from '@/components/FeaturedSlider';
 import api from '@/lib/api';
 import { MapPin, Star, Search, ArrowRight, SlidersHorizontal, X, ChevronLeft, ChevronRight, BadgeCheck } from 'lucide-react';
 
@@ -643,6 +644,9 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* ── FEATURED SLIDER ── */}
+      <FeaturedSlider />
 
       {/* ── GRID ── */}
       <main id="main-content" aria-label="Listado de negocios" className="flex-1 max-w-7xl mx-auto px-4 py-10 w-full">
