@@ -27,6 +27,7 @@ export default function CookieBanner() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'accepted') { loadGA(); return; }
     if (stored === 'rejected') return;
@@ -34,13 +35,13 @@ export default function CookieBanner() {
   }, []);
 
   const accept = () => {
-    localStorage.setItem(STORAGE_KEY, 'accepted');
+    if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, 'accepted');
     setShow(false);
     loadGA();
   };
 
   const reject = () => {
-    localStorage.setItem(STORAGE_KEY, 'rejected');
+    if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, 'rejected');
     setShow(false);
   };
 
