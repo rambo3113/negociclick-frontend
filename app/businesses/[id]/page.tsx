@@ -676,8 +676,8 @@ export default function BusinessDetailPage() {
             </div>
           )}
 
-          {/* Photo gallery */}
-          {photos.length > 0 && business?.ownerPlan !== 'FREE' && (
+          {/* Photo gallery - OCULTO EN PÁGINA PÚBLICA */}
+          {false && photos.length > 0 && business?.ownerPlan !== 'FREE' && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-50">
                 <h2 className="font-bold text-gray-900">Galería</h2>
