@@ -1278,32 +1278,34 @@ export default function DashboardPage() {
 
             {/* Business name indicator */}
             {selectedBiz && (
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+              <div className="flex flex-col gap-2">
+                {/* En móvil: vertical. En desktop: horizontal */}
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                     {selectedBiz.name.charAt(0)}
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap min-w-0">
-                    <span className="font-semibold text-gray-900 truncate text-sm sm:text-base">{selectedBiz.name}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0 flex-1">
+                    <span className="font-semibold text-gray-900 text-xs sm:text-base truncate line-clamp-1 max-w-full">{selectedBiz.name}</span>
                     {isVerified && (
-                      <span title="Perfil completo">
-                        <BadgeCheck className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                      <span title="Perfil completo" className="flex-shrink-0">
+                        <BadgeCheck className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-500" />
                       </span>
                     )}
-                    <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full flex-shrink-0">
                       {CATEGORY_LABELS[selectedBiz.category] || selectedBiz.category}
                     </span>
                   </div>
                 </div>
+                
+                {/* Link en su propia línea en móvil */}
                 <Link
                   href={`/businesses/${selectedBiz.id}`}
                   target="_blank"
-                  className="flex items-center gap-1 text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 font-medium whitespace-nowrap"
+                  className="flex items-center gap-1 text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 font-medium whitespace-nowrap w-fit"
                 >
                   <Eye className="w-3 h-3 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Ver página pública</span><span className="sm:hidden">Ver</span>
                 </Link>
               </div>
-            )}
 
             {/* Tabs */}
             <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
