@@ -557,18 +557,7 @@ export default function BusinessDetailPage() {
             <div className="absolute inset-0 bg-black/50" />
             {carouselSlides.length > 1 && (
               <>
-                <button
-                  onClick={() => setCarouselIdx(i => (i - 1 + carouselSlides.length) % carouselSlides.length)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center transition text-white"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setCarouselIdx(i => (i + 1) % carouselSlides.length)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center transition text-white"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                {/* Flechas de navegación REMOVIDAS - solo autoplay con dots */}
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex gap-1.5">
                   {carouselSlides.map((_, i) => (
                     <button
