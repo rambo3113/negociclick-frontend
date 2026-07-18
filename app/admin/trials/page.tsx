@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/lib/auth';
 import Cookies from 'js-cookie';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
@@ -62,7 +61,6 @@ function getAuthHeaders() {
 }
 
 export default function AdminTrialsPage() {
-  const { token } = useAuth();
   const [tab, setTab]               = useState<'active' | 'history' | 'grant'>('active');
   const [stats, setStats]           = useState<Stats | null>(null);
   const [trials, setTrials]         = useState<Trial[]>([]);
