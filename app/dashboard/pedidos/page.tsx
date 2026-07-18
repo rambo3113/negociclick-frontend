@@ -58,7 +58,7 @@ export default function PedidosPage() {
 
   useEffect(() => {
     fetch(`${API}/businesses/my`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      headers: { Authorization: `Bearer ${typeof window !== 'undefined' && localStorage.getItem('token')}` },
     })
       .then(r => r.json())
       .then(d => {
@@ -78,7 +78,7 @@ export default function PedidosPage() {
       const params = new URLSearchParams({ page: String(page), limit: String(limit) });
       if (statusFilter) params.set('status', statusFilter);
       const res = await fetch(`${API}/bookings/business/${bizId}?${params}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${typeof window !== 'undefined' && localStorage.getItem('token')}` },
       });
       const data = await res.json();
       setBookings(data.bookings ?? data);
@@ -95,7 +95,7 @@ export default function PedidosPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${typeof window !== 'undefined' && localStorage.getItem('token')}`,
         },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -114,7 +114,7 @@ export default function PedidosPage() {
     setTlLoading(id);
     try {
       const res = await fetch(`${API}/bookings/${id}/timeline`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${typeof window !== 'undefined' && localStorage.getItem('token')}` },
       });
       const data = await res.json();
       setTimelines(prev => ({ ...prev, [id]: data.timeline ?? [] }));

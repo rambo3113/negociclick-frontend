@@ -58,7 +58,7 @@ export default function MisPedidosPage() {
       const params = new URLSearchParams({ page: String(page), limit: String(limit) });
       if (status) params.set('status', status);
       const res = await fetch(`${API}/bookings/my?${params}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${typeof window !== 'undefined' && localStorage.getItem('token')}` },
       });
       const data = await res.json();
       setBookings(data.bookings ?? []);
@@ -75,7 +75,7 @@ export default function MisPedidosPage() {
     setTlLoading(id);
     try {
       const res = await fetch(`${API}/bookings/${id}/timeline`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${typeof window !== 'undefined' && localStorage.getItem('token')}` },
       });
       const data = await res.json();
       setTimelines(prev => ({ ...prev, [id]: data.timeline ?? [] }));
@@ -88,7 +88,7 @@ export default function MisPedidosPage() {
     if (!confirm('¿Cancelar esta reserva?')) return;
     const res = await fetch(`${API}/bookings/${id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      headers: { Authorization: `Bearer ${typeof window !== 'undefined' && localStorage.getItem('token')}` },
     });
     if (res.ok) fetchBookings();
     else {

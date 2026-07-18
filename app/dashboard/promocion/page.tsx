@@ -43,7 +43,7 @@ export default function PromocionPage() {
   businessRef.current  = business;
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = typeof window !== 'undefined' && localStorage.getItem('token');
     fetch(`${API}/businesses/my`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(d => {
@@ -65,7 +65,7 @@ export default function PromocionPage() {
       setStep('processing');
       setError('');
       try {
-        const token    = localStorage.getItem('token');
+        const token    = typeof window !== 'undefined' && localStorage.getItem('token');
         const biz      = businessRef.current!;
         const period   = selectedRef.current!;
         const res = await fetch(`${API}/businesses/${biz.id}/featured`, {
@@ -105,7 +105,7 @@ export default function PromocionPage() {
   async function confirmCancel() {
     setStep('processing');
     try {
-      const token = localStorage.getItem('token');
+      const token = typeof window !== 'undefined' && localStorage.getItem('token');
       const biz   = businessRef.current!;
       const res = await fetch(`${API}/businesses/${biz.id}/featured`, {
         method: 'DELETE',
