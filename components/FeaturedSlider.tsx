@@ -75,8 +75,8 @@ export default function FeaturedSlider() {
             slidesPerView={1}
             breakpoints={{
               320: { slidesPerView: 1, spaceBetween: 12 },
-              480: { slidesPerView: 1.2, spaceBetween: 14 },
-              640: { slidesPerView: 1.5, spaceBetween: 16 },
+              480: { slidesPerView: 1, spaceBetween: 14 },
+              640: { slidesPerView: 1.2, spaceBetween: 16 },
               768: { slidesPerView: 2, spaceBetween: 20 },
               1024: { slidesPerView: 2.5, spaceBetween: 24 },
               1280: { slidesPerView: 3, spaceBetween: 28 },
@@ -110,19 +110,14 @@ export default function FeaturedSlider() {
                     </div>
 
                     {/* Content */}
-                    <div className="p-1 xs:p-2 sm:p-4 md:p-5 lg:p-6 w-full overflow-hidden">
-                      {/* Nombre - SOLO en xs (480px+) en adelante */}
-                      <h3 className="hidden xs:block font-bold text-xs sm:text-lg md:text-xl lg:text-2xl text-gray-900 mb-0.5 xs:mb-1 group-hover:text-indigo-600 transition-colors truncate">
+                    <div className="p-1 xs:p-2 sm:p-4 md:p-5 lg:p-6 w-full overflow-hidden flex flex-col">
+                      {/* Nombre - SIEMPRE visible, se adapta al espacio */}
+                      <h3 className="font-bold text-[10px] xs:text-sm sm:text-lg md:text-xl lg:text-2xl text-gray-900 mb-0.5 xs:mb-1 group-hover:text-indigo-600 transition-colors truncate w-full">
                         {business.name}
                       </h3>
                       
-                      {/* En móvil pequeño (320px): mostrar categoría como título principal */}
-                      <p className="xs:hidden font-bold text-[11px] text-gray-900 mb-1 truncate">
-                        {business.category}
-                      </p>
-                      
-                      {/* Categoría - visible en xs+ solo si hay nombre */}
-                      <p className="hidden xs:block text-[10px] xs:text-xs sm:text-sm text-amber-600 font-semibold mb-0.5 xs:mb-1 sm:mb-3 truncate">
+                      {/* Categoría */}
+                      <p className="text-[9px] xs:text-xs sm:text-sm text-amber-600 font-semibold mb-0.5 xs:mb-1 sm:mb-3 truncate w-full">
                         {business.category}
                       </p>
 
@@ -221,6 +216,34 @@ export default function FeaturedSlider() {
 
         .featured-slider-swiper .swiper-pagination {
           padding: 8px 0 0 0;
+        }
+
+        /* FORCE: Asegurar que el slide no permite overflow */
+        .featured-slider-swiper .swiper-slide {
+          overflow: hidden !important;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .featured-slider-swiper .swiper-slide > * {
+          overflow: hidden;
+        }
+
+        /* FORCE: Texto truncado en h3 */
+        .featured-slider-swiper h3,
+        .featured-slider-swiper p {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        /* Descripción puede ser múltiples líneas */
+        .featured-slider-swiper p[class*="line-clamp"] {
+          white-space: normal;
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
         }
       `}</style>
     </section>
