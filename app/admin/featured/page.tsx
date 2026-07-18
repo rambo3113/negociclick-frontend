@@ -37,7 +37,10 @@ export default function AdminFeaturedPage() {
   }, [bizSearch]);
 
   const handleAssignFeatured = async () => {
-    if (!selectedBiz) return;
+    if (!selectedBiz || !selectedBiz.id) {
+      setMsg('❌ Selecciona un negocio');
+      return;
+    }
 
     setLoading(true);
     setMsg('');
@@ -53,13 +56,14 @@ export default function AdminFeaturedPage() {
         days: planMeta.daysCount,
         amount: planMeta.price,
         featuredUntil,
-        reason,
+        reason: reason || undefined,
       });
 
       if (res.data.success) {
         setMsg(`✅ Plan de ${planMeta.label} asignado a ${selectedBiz.name} hasta ${new Date(featuredUntil).toLocaleDateString('es-PE')}`);
         setSelectedBiz(null);
         setBizSearch('');
+        setBizResults([]);
         setReason('');
         setFeaturedPlan('30days');
       }
@@ -87,11 +91,19 @@ export default function AdminFeaturedPage() {
 
           {/* Business search */}
           <div className="mb-6">
-            <label className="block text-sm font-bold text-gray-700 mb-2">Negocio</label>
-            {selectedBiz ? (
-              <div className="flex items-center justify-between bg-amber-50 border-2 border-amber-300 rounded-lg px-4 py-3">
-                <span className="text-sm font-semibold text-amber-900">{selectedBiz.name}</span>
-                <button onClick={() => setSelectedBiz(null)} className="text-amber-400 hover:text-amber-600 font-bold">✕</button>
+            <label className="block text-sm font-bold text-gray-700 mb-3">Negocio</label>
+            {selectedBiz && selectedBiz.id ? (
+              <div className="flex items-center justify-between bg-gradient-to-r from-amber-50 to-amber-100 border-2 border-amber-300 rounded-xl px-4 py-3 shadow-sm">
+                <div className="flex-1">
+                  <div className="text-sm font-bold text-amber-900">{selectedBiz.name}</div>
+                  <div className="text-xs text-amber-600">{selectedBiz.category}</div>
+                </div>
+                <button 
+                  onClick={() => { setSelectedBiz(null); setBizSearch(''); setBizResults([]); }}
+                  className="ml-3 flex-shrink-0 text-amber-500 hover:text-amber-700 hover:bg-amber-200 rounded-full w-6 h-6 flex items-center justify-center font-bold transition-all"
+                >
+                  ✕
+                </button>
               </div>
             ) : (
               <div className="relative">
@@ -99,19 +111,24 @@ export default function AdminFeaturedPage() {
                   type="text"
                   value={bizSearch}
                   onChange={e => setBizSearch(e.target.value)}
-                  placeholder="Buscar negocio..."
-                  className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Buscar negocio por nombre..."
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
                 />
+                {bizSearch.length > 0 && bizResults.length === 0 && (
+                  <div className="absolute z-10 w-full mt-2 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-600">
+                    No se encontraron negocios
+                  </div>
+                )}
                 {bizResults.length > 0 && (
-                  <div className="absolute z-10 w-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                  <div className="absolute z-10 w-full mt-2 bg-white border-2 border-amber-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
                     {bizResults.map(b => (
                       <button
                         key={b.id}
                         onClick={() => { setSelectedBiz(b); setBizSearch(''); setBizResults([]); }}
-                        className="w-full text-left px-4 py-3 text-sm text-gray-900 hover:bg-amber-50 border-b border-gray-100 last:border-0 transition-colors"
+                        className="w-full text-left px-4 py-3 text-sm text-gray-900 hover:bg-amber-50 border-b border-gray-100 last:border-0 transition-colors font-medium"
                       >
                         <div className="font-semibold">{b.name}</div>
-                        <div className="text-xs text-gray-500">{b.category}</div>
+                        <div className="text-xs text-gray-500">{b.category} • {b.city || 'Lima'}</div>
                       </button>
                     ))}
                   </div>

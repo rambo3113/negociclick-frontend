@@ -233,12 +233,20 @@ export default function AdminTrialsPage() {
             <h2 className="font-bold text-gray-900 mb-5">Asignar trial manual</h2>
 
             {/* Business search */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Negocio</label>
-              {selectedBiz ? (
-                <div className="flex items-center justify-between bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-2">
-                  <span className="text-sm font-medium text-indigo-800">{selectedBiz.name}</span>
-                  <button onClick={() => setSelectedBiz(null)} className="text-indigo-400 hover:text-indigo-600 text-xs ml-2">✕</button>
+            <div className="mb-6">
+              <label className="block text-sm font-bold text-gray-700 mb-3">Negocio</label>
+              {selectedBiz && selectedBiz.id ? (
+                <div className="flex items-center justify-between bg-gradient-to-r from-indigo-50 to-indigo-100 border-2 border-indigo-300 rounded-xl px-4 py-3 shadow-sm">
+                  <div className="flex-1">
+                    <div className="text-sm font-bold text-indigo-900">{selectedBiz.name}</div>
+                    <div className="text-xs text-indigo-600">{selectedBiz.category}</div>
+                  </div>
+                  <button 
+                    onClick={() => { setSelectedBiz(null); setBizSearch(''); setBizResults([]); }}
+                    className="ml-3 flex-shrink-0 text-indigo-500 hover:text-indigo-700 hover:bg-indigo-200 rounded-full w-6 h-6 flex items-center justify-center font-bold transition-all"
+                  >
+                    ✕
+                  </button>
                 </div>
               ) : (
                 <div className="relative">
@@ -246,18 +254,24 @@ export default function AdminTrialsPage() {
                     type="text"
                     value={bizSearch}
                     onChange={e => setBizSearch(e.target.value)}
-                    placeholder="Buscar negocio..."
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Buscar negocio por nombre..."
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                   />
+                  {bizSearch.length > 0 && bizResults.length === 0 && (
+                    <div className="absolute z-10 w-full mt-2 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-600">
+                      No se encontraron negocios
+                    </div>
+                  )}
                   {bizResults.length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    <div className="absolute z-10 w-full mt-2 bg-white border-2 border-indigo-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
                       {bizResults.map(b => (
                         <button
                           key={b.id}
                           onClick={() => { setSelectedBiz(b); setBizSearch(''); setBizResults([]); }}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 border-b border-gray-50 last:border-0"
+                          className="w-full text-left px-4 py-3 text-sm text-gray-900 hover:bg-indigo-50 border-b border-gray-100 last:border-0 transition-colors font-medium"
                         >
-                          {b.name}
+                          <div className="font-semibold">{b.name}</div>
+                          <div className="text-xs text-gray-500">{b.category} • {b.city || 'Lima'}</div>
                         </button>
                       ))}
                     </div>
