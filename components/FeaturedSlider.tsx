@@ -24,7 +24,6 @@ interface FeaturedBusiness {
 export default function FeaturedSlider() {
   const [featured, setFeatured] = useState<FeaturedBusiness[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -33,46 +32,38 @@ export default function FeaturedSlider() {
         const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
         const res = await fetch(`${API}/featured-businesses`);
         const data = await res.json();
-
-        if (data.success && data.featured && data.featured.length > 0) {
+        if (data.success && data.featured?.length > 0) {
           setFeatured(data.featured);
-        } else {
-          setFeatured([]);
         }
       } catch (err) {
-        console.error('[FeaturedSlider] Error fetching:', err);
-        setError('Error al cargar negocios destacados');
-        setFeatured([]);
+        console.error('[FeaturedSlider] Error:', err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchFeatured();
   }, []);
 
-  // Si no hay destacados, no mostrar nada
-  if (loading) return null;
-  if (!featured || featured.length === 0) return null;
+  if (loading || !featured?.length) return null;
 
   return (
-    <section className="w-full bg-gradient-to-b from-indigo-50 to-white py-12 px-4">
+    <section className="w-full bg-gradient-to-b from-indigo-50 to-white py-8 xs:py-10 sm:py-12 md:py-16 px-2 xs:px-3 sm:px-4 md:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-10">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+        <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12">
+          <div className="flex items-center justify-center gap-1 xs:gap-2 mb-2 xs:mb-3">
+            <Star className="w-4 xs:w-5 sm:w-6 h-4 xs:h-5 sm:h-6 text-amber-500 fill-amber-500" />
+            <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
               Negocios Destacados
             </h2>
-            <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
+            <Star className="w-4 xs:w-5 sm:w-6 h-4 xs:h-5 sm:h-6 text-amber-500 fill-amber-500" />
           </div>
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-600 text-xs xs:text-sm sm:text-base md:text-lg">
             Los mejores negocios seleccionados para ti
           </p>
         </div>
 
-        {/* Slider */}
+        {/* Slider Container */}
         <div className="relative">
           <Swiper
             modules={[Autoplay, Navigation, Pagination]}
@@ -80,20 +71,25 @@ export default function FeaturedSlider() {
             navigation={true}
             pagination={{ clickable: true, dynamicBullets: true }}
             loop={featured.length > 1}
-            spaceBetween={20}
+            spaceBetween={12}
             slidesPerView={1}
             breakpoints={{
-              768: { slidesPerView: 2, spaceBetween: 24 },
-              1024: { slidesPerView: 3, spaceBetween: 28 },
+              320: { slidesPerView: 1, spaceBetween: 12 },
+              480: { slidesPerView: 1.2, spaceBetween: 14 },
+              640: { slidesPerView: 1.5, spaceBetween: 16 },
+              768: { slidesPerView: 2, spaceBetween: 20 },
+              1024: { slidesPerView: 2.5, spaceBetween: 24 },
+              1280: { slidesPerView: 3, spaceBetween: 28 },
+              1536: { slidesPerView: 3.5, spaceBetween: 32 },
             }}
             className="featured-slider-swiper"
           >
             {featured.map(business => (
               <SwiperSlide key={business.id}>
                 <Link href={`/businesses/${business.id}`}>
-                  <div className="group h-full bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-amber-200 cursor-pointer">
-                    {/* Imagen */}
-                    <div className="relative h-40 sm:h-48 md:h-56 bg-gray-200 overflow-hidden">
+                  <div className="group h-full bg-white rounded-lg xs:rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-amber-200 cursor-pointer">
+                    {/* Image */}
+                    <div className="relative h-32 xs:h-36 sm:h-40 md:h-48 lg:h-56 xl:h-64 bg-gray-200 overflow-hidden">
                       {business.photo ? (
                         <img
                           src={business.photo}
@@ -102,50 +98,45 @@ export default function FeaturedSlider() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-100">
-                          <span className="text-gray-400 text-sm">Sin imagen</span>
+                          <span className="text-gray-400 text-xs xs:text-sm">Sin imagen</span>
                         </div>
                       )}
 
-                      {/* Badge "DESTACADO" */}
-                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
-                        <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" />
+                      {/* Badge */}
+                      <div className="absolute top-1 right-1 xs:top-2 xs:right-2 sm:top-3 sm:right-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-1.5 xs:px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-bold flex items-center gap-0.5 xs:gap-1 shadow-lg">
+                        <Star className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 fill-current" />
                         <span className="hidden sm:inline">DESTACADO</span>
-                        <span className="sm:hidden">★</span>
                       </div>
                     </div>
 
-                    {/* Contenido */}
-                    <div className="p-3 md:p-5 lg:p-6">
-                      {/* Nombre y Categoría */}
-                      <h3 className="font-bold text-base sm:text-lg md:text-xl text-gray-900 mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                    {/* Content */}
+                    <div className="p-2 xs:p-3 sm:p-4 md:p-5 lg:p-6">
+                      <h3 className="font-bold text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl text-gray-900 mb-0.5 xs:mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">
                         {business.name}
                       </h3>
-                      <p className="text-xs text-amber-600 font-semibold mb-2 sm:mb-3">
+                      <p className="text-xs text-amber-600 font-semibold mb-1 xs:mb-2 sm:mb-3">
                         {business.category}
                       </p>
 
-                      {/* Descripción */}
-                      <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">
+                      <p className="text-xs sm:text-sm text-gray-600 mb-2 xs:mb-3 line-clamp-2">
                         {business.description || 'Negocio destacado de NegociClick'}
                       </p>
 
-                      {/* Ubicación y Teléfono */}
-                      <div className="space-y-1 sm:space-y-2 mb-3 text-xs text-gray-700">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <MapPin className="w-3 sm:w-4 h-3 sm:h-4 text-indigo-500 flex-shrink-0" />
-                          <span className="truncate text-xs sm:text-sm">{business.address || business.city}</span>
+                      <div className="space-y-0.5 xs:space-y-1 sm:space-y-2 mb-2 xs:mb-3">
+                        <div className="flex items-center gap-1 xs:gap-2 min-w-0 text-xs sm:text-sm text-gray-700">
+                          <MapPin className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-indigo-500 flex-shrink-0" />
+                          <span className="truncate">{business.address || business.city}</span>
                         </div>
                         {business.phone && (
-                          <div className="flex items-center gap-2 min-w-0">
-                            <Phone className="w-3 sm:w-4 h-3 sm:h-4 text-indigo-500 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm">{business.phone}</span>
+                          <div className="flex items-center gap-1 xs:gap-2 min-w-0 text-xs sm:text-sm text-gray-700">
+                            <Phone className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-indigo-500 flex-shrink-0" />
+                            <span className="truncate">{business.phone}</span>
                           </div>
                         )}
                       </div>
 
-                      {/* Botón */}
-                      <div className="pt-2 sm:pt-3 border-t border-gray-100">
-                        <button className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-1.5 sm:py-2 rounded-lg transition-all duration-300 text-xs sm:text-sm md:text-base">
+                      <div className="pt-1 xs:pt-2 sm:pt-3 border-t border-gray-100">
+                        <button className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-1 xs:py-1.5 sm:py-2 rounded transition-all duration-300 text-xs sm:text-sm md:text-base">
                           Ver Detalles
                         </button>
                       </div>
@@ -158,16 +149,16 @@ export default function FeaturedSlider() {
         </div>
       </div>
 
-      {/* Custom Swiper Styles */}
       <style jsx global>{`
         .featured-slider-swiper .swiper-button-next,
         .featured-slider-swiper .swiper-button-prev {
           background-color: rgba(79, 70, 229, 0.9);
           color: white;
-          width: 40px;
-          height: 40px;
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
           transition: all 0.3s ease;
+          display: none;
         }
 
         .featured-slider-swiper .swiper-button-next:hover,
@@ -178,21 +169,25 @@ export default function FeaturedSlider() {
 
         .featured-slider-swiper .swiper-button-next::after,
         .featured-slider-swiper .swiper-button-prev::after {
-          font-size: 20px;
+          font-size: 16px;
         }
 
         .featured-slider-swiper .swiper-pagination-bullet {
           background-color: rgba(79, 70, 229, 0.4);
           opacity: 1;
+          width: 6px;
+          height: 6px;
+          margin: 0 2px;
         }
 
         .featured-slider-swiper .swiper-pagination-bullet-active {
           background-color: rgba(79, 70, 229, 1);
         }
 
-        @media (max-width: 768px) {
+        @media (min-width: 768px) {
           .featured-slider-swiper .swiper-button-next,
           .featured-slider-swiper .swiper-button-prev {
+            display: flex;
             width: 36px;
             height: 36px;
           }
@@ -201,6 +196,23 @@ export default function FeaturedSlider() {
           .featured-slider-swiper .swiper-button-prev::after {
             font-size: 18px;
           }
+        }
+
+        @media (min-width: 1024px) {
+          .featured-slider-swiper .swiper-button-next,
+          .featured-slider-swiper .swiper-button-prev {
+            width: 40px;
+            height: 40px;
+          }
+
+          .featured-slider-swiper .swiper-button-next::after,
+          .featured-slider-swiper .swiper-button-prev::after {
+            font-size: 20px;
+          }
+        }
+
+        .featured-slider-swiper .swiper-pagination {
+          padding: 8px 0 0 0;
         }
       `}</style>
     </section>
