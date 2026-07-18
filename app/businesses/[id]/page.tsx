@@ -557,7 +557,16 @@ export default function BusinessDetailPage() {
             <div className="absolute inset-0 bg-black/50" />
             {carouselSlides.length > 1 && (
               <>
-                {/* Dots removidos */}
+                {/* Flechas de navegación REMOVIDAS - solo autoplay con dots */}
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex gap-1.5">
+                  {carouselSlides.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCarouselIdx(i)}
+                      className={`rounded-full transition-all ${i === carouselIdx ? 'w-4 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/50'}`}
+                    />
+                  ))}
+                </div>
               </>
             )}
           </>
