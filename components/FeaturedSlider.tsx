@@ -93,7 +93,7 @@ export default function FeaturedSlider() {
                 <Link href={`/businesses/${business.id}`}>
                   <div className="group h-full bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-amber-200 cursor-pointer">
                     {/* Imagen */}
-                    <div className="relative h-48 md:h-56 bg-gray-200 overflow-hidden">
+                    <div className="relative h-40 sm:h-48 md:h-56 bg-gray-200 overflow-hidden">
                       {business.photo ? (
                         <img
                           src={business.photo}
@@ -107,44 +107,45 @@ export default function FeaturedSlider() {
                       )}
 
                       {/* Badge "DESTACADO" */}
-                      <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
-                        <Star className="w-3 h-3 fill-current" />
-                        DESTACADO
+                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
+                        <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" />
+                        <span className="hidden sm:inline">DESTACADO</span>
+                        <span className="sm:hidden">★</span>
                       </div>
                     </div>
 
                     {/* Contenido */}
-                    <div className="p-5 md:p-6">
+                    <div className="p-3 md:p-5 lg:p-6">
                       {/* Nombre y Categoría */}
-                      <h3 className="font-bold text-lg md:text-xl text-gray-900 mb-1 group-hover:text-indigo-600 transition-colors">
+                      <h3 className="font-bold text-base sm:text-lg md:text-xl text-gray-900 mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">
                         {business.name}
                       </h3>
-                      <p className="text-xs md:text-sm text-amber-600 font-semibold mb-3">
+                      <p className="text-xs text-amber-600 font-semibold mb-2 sm:mb-3">
                         {business.category}
                       </p>
 
                       {/* Descripción */}
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                      <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">
                         {business.description || 'Negocio destacado de NegociClick'}
                       </p>
 
                       {/* Ubicación y Teléfono */}
-                      <div className="space-y-2 mb-4 text-xs md:text-sm text-gray-700">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-indigo-500 flex-shrink-0" />
-                          <span className="truncate">{business.address || business.city}</span>
+                      <div className="space-y-1 sm:space-y-2 mb-3 text-xs text-gray-700">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <MapPin className="w-3 sm:w-4 h-3 sm:h-4 text-indigo-500 flex-shrink-0" />
+                          <span className="truncate text-xs sm:text-sm">{business.address || business.city}</span>
                         </div>
                         {business.phone && (
-                          <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-indigo-500 flex-shrink-0" />
-                            <span>{business.phone}</span>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Phone className="w-3 sm:w-4 h-3 sm:h-4 text-indigo-500 flex-shrink-0" />
+                            <span className="text-xs sm:text-sm">{business.phone}</span>
                           </div>
                         )}
                       </div>
 
                       {/* Botón */}
-                      <div className="pt-3 border-t border-gray-100">
-                        <button className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-2 rounded-lg transition-all duration-300 text-sm md:text-base">
+                      <div className="pt-2 sm:pt-3 border-t border-gray-100">
+                        <button className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-1.5 sm:py-2 rounded-lg transition-all duration-300 text-xs sm:text-sm md:text-base">
                           Ver Detalles
                         </button>
                       </div>
