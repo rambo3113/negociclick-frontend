@@ -28,7 +28,13 @@ interface Stats {
   trialsByPlan:       Record<string, number>;
 }
 
-interface Business { id: string; name: string; ownerEmail?: string }
+interface Business { 
+  id: string
+  name: string 
+  category?: string
+  city?: string
+  ownerEmail?: string 
+}
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
   ACTIVE:    { label: 'Activo',    color: 'bg-green-100 text-green-800' },
@@ -239,7 +245,7 @@ export default function AdminTrialsPage() {
                 <div className="flex items-center justify-between bg-gradient-to-r from-indigo-50 to-indigo-100 border-2 border-indigo-300 rounded-xl px-4 py-3 shadow-sm">
                   <div className="flex-1">
                     <div className="text-sm font-bold text-indigo-900">{selectedBiz.name}</div>
-                    <div className="text-xs text-indigo-600">{selectedBiz.category}</div>
+                    {selectedBiz.category && <div className="text-xs text-indigo-600">{selectedBiz.category}</div>}
                   </div>
                   <button 
                     onClick={() => { setSelectedBiz(null); setBizSearch(''); setBizResults([]); }}
@@ -271,7 +277,10 @@ export default function AdminTrialsPage() {
                           className="w-full text-left px-4 py-3 text-sm text-gray-900 hover:bg-indigo-50 border-b border-gray-100 last:border-0 transition-colors font-medium"
                         >
                           <div className="font-semibold">{b.name}</div>
-                          <div className="text-xs text-gray-500">{b.category} • {b.city || 'Lima'}</div>
+                          <div className="text-xs text-gray-500">
+                            {b.category && `${b.category} • `}
+                            {b.city || 'Lima'}
+                          </div>
                         </button>
                       ))}
                     </div>

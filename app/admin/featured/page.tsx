@@ -4,6 +4,14 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { Star } from 'lucide-react';
 
+interface Business {
+  id: string;
+  name: string;
+  category?: string;
+  city?: string;
+  ownerEmail?: string;
+}
+
 const FEATURED_PLANS = {
   '7days': { label: '7 días', icon: '⭐', daysCount: 7, price: 9.90 },
   '15days': { label: '15 días', icon: '⭐⭐', daysCount: 15, price: 19.90 },
@@ -11,10 +19,10 @@ const FEATURED_PLANS = {
 };
 
 export default function AdminFeaturedPage() {
-  const [businesses, setBusinesses] = useState<any[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [bizSearch, setBizSearch] = useState('');
-  const [bizResults, setBizResults] = useState<any[]>([]);
-  const [selectedBiz, setSelectedBiz] = useState<any>(null);
+  const [bizResults, setBizResults] = useState<Business[]>([]);
+  const [selectedBiz, setSelectedBiz] = useState<Business | null>(null);
   const [featuredPlan, setFeaturedPlan] = useState<'7days' | '15days' | '30days'>('30days');
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
@@ -96,7 +104,7 @@ export default function AdminFeaturedPage() {
               <div className="flex items-center justify-between bg-gradient-to-r from-amber-50 to-amber-100 border-2 border-amber-300 rounded-xl px-4 py-3 shadow-sm">
                 <div className="flex-1">
                   <div className="text-sm font-bold text-amber-900">{selectedBiz.name}</div>
-                  <div className="text-xs text-amber-600">{selectedBiz.category}</div>
+                  {selectedBiz.category && <div className="text-xs text-amber-600">{selectedBiz.category}</div>}
                 </div>
                 <button 
                   onClick={() => { setSelectedBiz(null); setBizSearch(''); setBizResults([]); }}
@@ -128,7 +136,10 @@ export default function AdminFeaturedPage() {
                         className="w-full text-left px-4 py-3 text-sm text-gray-900 hover:bg-amber-50 border-b border-gray-100 last:border-0 transition-colors font-medium"
                       >
                         <div className="font-semibold">{b.name}</div>
-                        <div className="text-xs text-gray-500">{b.category} • {b.city || 'Lima'}</div>
+                        <div className="text-xs text-gray-500">
+                          {b.category && `${b.category} • `}
+                          {b.city || 'Lima'}
+                        </div>
                       </button>
                     ))}
                   </div>
