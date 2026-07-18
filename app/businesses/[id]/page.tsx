@@ -633,6 +633,13 @@ export default function BusinessDetailPage() {
                   <MessageCircle className="w-3.5 h-3.5" />
                   WhatsApp
                 </a>
+                <button
+                  onClick={handleShare}
+                  className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 border border-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-full transition-all hover:scale-105"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  Compartir
+                </button>
               </div>
             </div>
 
