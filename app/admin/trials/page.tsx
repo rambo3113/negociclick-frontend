@@ -1,5 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/lib/auth';
+import Cookies from 'js-cookie';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
@@ -51,11 +53,16 @@ function fmtDate(ts: string) {
   return new Date(ts).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function authHeaders() {
-  return { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` };
+function getAuthHeaders() {
+  const token = Cookies.get('token');
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token || ''}`,
+  };
 }
 
 export default function AdminTrialsPage() {
+  const { token } = useAuth();
   const [tab, setTab]               = useState<'active' | 'history' | 'grant'>('active');
   const [stats, setStats]           = useState<Stats | null>(null);
   const [trials, setTrials]         = useState<Trial[]>([]);
@@ -97,7 +104,7 @@ export default function AdminTrialsPage() {
   useEffect(() => {
     if (!bizSearch.trim()) { setBizResults([]); return; }
     const t = setTimeout(async () => {
-      const res = await fetch(`${API}/businesses?search=${encodeURIComponent(bizSearch)}&limit=8`, { headers: authHeaders() });
+      const res = await fetch(`${API}/businesses?search=${encodeURIComponent(bizSearch)}&limit=8`, { headers: getAuthHeaders() });
       const d = await res.json();
       setBizResults(d.businesses ?? []);
     }, 300);
@@ -105,7 +112,7 @@ export default function AdminTrialsPage() {
   }, [bizSearch]);
 
   async function fetchStats() {
-    const res = await fetch(`${API}/admin/trials/stats`, { headers: authHeaders() });
+    const res = await fetch(`${API}/admin/trials/stats`, { headers: getAuthHeaders() });
     const d = await res.json();
     setStats(d.stats ?? null);
   }
@@ -114,7 +121,7 @@ export default function AdminTrialsPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(limit), status: statusFilter });
-      const res = await fetch(`${API}/admin/trials?${params}`, { headers: authHeaders() });
+      const res = await fetch(`${API}/admin/trials?${params}`, { headers: getAuthHeaders() });
       const d = await res.json();
       setTrials(d.trials ?? []);
       setTotal(d.total ?? 0);
@@ -130,7 +137,7 @@ export default function AdminTrialsPage() {
     try {
       const res = await fetch(`${API}/admin/trials/grant`, {
         method: 'POST',
-        headers: authHeaders(),
+        headers: getAuthHeaders(),
         body: JSON.stringify({ businessId: selectedBiz.id, planType: grantPlan, durationDays: grantDays, reason: grantReason || undefined }),
       });
       const d = await res.json();
@@ -149,7 +156,7 @@ export default function AdminTrialsPage() {
     try {
       const res = await fetch(`${API}/admin/trials/revoke`, {
         method: 'POST',
-        headers: authHeaders(),
+        headers: getAuthHeaders(),
         body: JSON.stringify({ businessId: revokeTarget.businessId }),
       });
       const d = await res.json();
@@ -168,7 +175,7 @@ export default function AdminTrialsPage() {
     try {
       const res = await fetch(`${API}/admin/trials/extend`, {
         method: 'POST',
-        headers: authHeaders(),
+        headers: getAuthHeaders(),
         body: JSON.stringify({ businessId: extendTarget.businessId, extraDays: extendDays }),
       });
       const d = await res.json();
