@@ -249,14 +249,14 @@ export default function AdminTrialsPage() {
             <div className="mb-6">
               <label className="block text-sm font-bold text-gray-700 mb-3">Negocio</label>
               {selectedBiz && selectedBiz.id ? (
-                <div className="flex items-center justify-between bg-gradient-to-r from-indigo-600 to-indigo-700 border-2 border-indigo-800 rounded-xl px-4 py-3 shadow-md">
+                <div className="flex items-center justify-between bg-gradient-to-r from-indigo-900 to-indigo-950 border-2 border-indigo-950 rounded-xl px-4 py-3 shadow-lg">
                   <div className="flex-1">
                     <div className="text-sm font-bold text-white">{selectedBiz.name}</div>
-                    {selectedBiz.category && <div className="text-xs text-indigo-100">{selectedBiz.category}</div>}
+                    {selectedBiz.category && <div className="text-xs text-indigo-200">{selectedBiz.category}</div>}
                   </div>
                   <button 
                     onClick={() => { setSelectedBiz(null); setBizSearch(''); setBizResults([]); }}
-                    className="ml-3 flex-shrink-0 text-indigo-100 hover:text-white hover:bg-indigo-500 rounded-full w-6 h-6 flex items-center justify-center font-bold transition-all"
+                    className="ml-3 flex-shrink-0 text-white hover:text-yellow-300 hover:bg-indigo-800 rounded-full w-6 h-6 flex items-center justify-center font-bold transition-all"
                   >
                     ✕
                   </button>
