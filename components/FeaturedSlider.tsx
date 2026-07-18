@@ -89,7 +89,7 @@ export default function FeaturedSlider() {
                 <Link href={`/businesses/${business.id}`}>
                   <div className="group h-full bg-white rounded-lg xs:rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-amber-200 cursor-pointer">
                     {/* Image */}
-                    <div className="relative h-32 xs:h-36 sm:h-40 md:h-48 lg:h-56 xl:h-64 bg-gray-200 overflow-hidden">
+                    <div className="relative h-28 xs:h-32 sm:h-40 md:h-48 lg:h-56 xl:h-64 bg-gray-200 overflow-hidden">
                       {business.photo ? (
                         <img
                           src={business.photo}
@@ -110,11 +110,11 @@ export default function FeaturedSlider() {
                     </div>
 
                     {/* Content */}
-                    <div className="p-2 xs:p-3 sm:p-4 md:p-5 lg:p-6">
-                      <h3 className="font-bold text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl text-gray-900 mb-0.5 xs:mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                    <div className="p-2 xs:p-3 sm:p-4 md:p-5 lg:p-6 overflow-hidden">
+                      <h3 className="font-bold text-xs xs:text-sm sm:text-lg md:text-xl lg:text-2xl text-gray-900 mb-0.5 xs:mb-1 group-hover:text-indigo-600 transition-colors truncate">
                         {business.name}
                       </h3>
-                      <p className="text-xs text-amber-600 font-semibold mb-1 xs:mb-2 sm:mb-3">
+                      <p className="text-xs xs:text-xs sm:text-sm text-amber-600 font-semibold mb-1 xs:mb-2 sm:mb-3 truncate">
                         {business.category}
                       </p>
 
