@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import EmptyState from '@/components/EmptyState';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://negociclick.pe';
@@ -190,17 +191,19 @@ export default async function CategoriaPage(
       {/* Listado */}
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full">
         {businesses.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4">{meta.emoji}</div>
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Próximamente en Lima</h2>
-            <p className="text-gray-500 mb-6">Aún no hay {meta.label.toLowerCase()} registrados. ¡Sé el primero!</p>
+          <EmptyState
+            emoji={meta.emoji}
+            title={`¿Tienes un negocio de ${meta.label.toLowerCase()}?`}
+            description={`Aún no hay ${meta.label.toLowerCase()} registrados en NegociClick. Sé el primero en publicar y empieza a recibir reservas hoy mismo, gratis.`}
+            cta={{ label: 'Publicar mi negocio gratis →', href: '/register?role=VENDOR' }}
+          >
             <Link
-              href="/register?role=VENDOR"
-              className="inline-block bg-indigo-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-indigo-700 transition"
+              href="/"
+              className="block text-sm text-indigo-600 hover:underline mt-2"
             >
-              Registrar mi negocio gratis
+              ← Explorar otras categorías
             </Link>
-          </div>
+          </EmptyState>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

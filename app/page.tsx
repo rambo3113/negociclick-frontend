@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import FeaturedSlider from '@/components/FeaturedSlider';
 import api from '@/lib/api';
 import { MapPin, Star, Search, ArrowRight, SlidersHorizontal, X, ChevronLeft, ChevronRight, BadgeCheck } from 'lucide-react';
+import EmptyState from '@/components/EmptyState';
 
 interface Business {
   id: string;
@@ -657,38 +658,29 @@ export default function HomePage() {
             {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : businesses.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-24 h-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-3xl flex items-center justify-center text-5xl mx-auto mb-6 shadow-inner">
-              🔍
+          <EmptyState
+            emoji="🔍"
+            title="Sin resultados"
+            description="No encontramos negocios con esa búsqueda. Prueba con otra categoría o limpia los filtros."
+            ctaButton={{ label: 'Limpiar filtros', onClick: clearAll }}
+          >
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">Categorías populares</p>
+            <div className="flex flex-wrap gap-2 justify-center max-w-lg mx-auto">
+              {['BARBERIA','SPA','SALON_BELLEZA','ODONTOLOGIA','GIMNASIO','MASAJES_DOMICILIO','NUTRICIONISTA','NAIL_ART'].map(key => {
+                const m = CATEGORY_META[key];
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => { setSearch(''); setCategory(key); }}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all shadow-sm"
+                  >
+                    <span>{m.emoji}</span> {m.label}
+                  </button>
+                );
+              })}
             </div>
-            <h3 className="text-2xl font-black text-gray-900 mb-2">Sin resultados</h3>
-            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
-              No encontramos negocios con esa búsqueda. Prueba con otra categoría o limpia los filtros.
-            </p>
-            <button
-              onClick={clearAll}
-              className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-bold px-6 py-3 rounded-xl hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all mb-12"
-            >
-              <X className="w-4 h-4" /> Limpiar filtros
-            </button>
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">Categorías populares</p>
-              <div className="flex flex-wrap gap-2 justify-center max-w-lg mx-auto">
-                {['BARBERIA','SPA','SALON_BELLEZA','ODONTOLOGIA','GIMNASIO','MASAJES_DOMICILIO','NUTRICIONISTA','NAIL_ART'].map(key => {
-                  const m = CATEGORY_META[key];
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => { setSearch(''); setCategory(key); }}
-                      className="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all shadow-sm"
-                    >
-                      <span>{m.emoji}</span> {m.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
+          </EmptyState>
         ) : (
           <>
             <div className="flex items-center justify-between mb-4">
