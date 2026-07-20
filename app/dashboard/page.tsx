@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import NextImage from 'next/image';
 import Navbar from '@/components/Navbar';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import api from '@/lib/api';
@@ -2400,11 +2401,14 @@ export default function DashboardPage() {
                       {services.map(service => (
                         <div key={service.id} className="border border-gray-200 rounded-xl overflow-hidden hover:border-indigo-200 hover:shadow-sm transition-all group">
                           {/* Foto del servicio */}
-                          <label className="relative block cursor-pointer">
+                          <label className="relative block h-36 cursor-pointer">
                             {service.photo ? (
-                              <img src={resolveUrl(service.photo)}
+                              <NextImage
+                                src={resolveUrl(service.photo)}
                                 alt={service.name}
-                                className="w-full h-36 object-contain object-center bg-gray-50 p-2" />
+                                fill
+                                sizes="(max-width: 640px) 100vw, 50vw"
+                                className="object-contain object-center bg-gray-50 p-2" />
                             ) : (
                               <div className="w-full h-36 bg-gray-100 flex flex-col items-center justify-center gap-1 text-gray-400 hover:bg-indigo-50 hover:text-indigo-400 transition">
                                 <Image className="w-5 h-5" />
@@ -2613,7 +2617,12 @@ export default function DashboardPage() {
                               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                                 {photos.map(photo => (
                                   <div key={photo.id} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200">
-                                    <img src={resolveUrl(photo.url)} alt={photo.caption ?? 'Foto del negocio'} className="w-full h-full object-cover" />
+                                    <NextImage
+                                      src={resolveUrl(photo.url)}
+                                      alt={photo.caption ?? 'Foto del negocio'}
+                                      fill
+                                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                      className="object-cover" />
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                       {confirmDeletePhoto === photo.id
                                         ? (

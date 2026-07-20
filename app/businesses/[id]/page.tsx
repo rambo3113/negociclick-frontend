@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth';
 import { MapPin, Phone, Star, Clock, ChevronLeft, CheckCircle, Calendar, MessageSquare, ArrowRight, Loader2, MessageCircle, X, Share2, ShoppingCart, Plus, Minus, Truck, Package, ChevronRight, AlertTriangle, BadgeCheck } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 import Link from 'next/link';
+import Image from 'next/image';
 import CulqiPaymentModal from '@/components/CulqiPaymentModal';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
@@ -549,11 +550,14 @@ export default function BusinessDetailPage() {
         {carouselSlides.length > 0 ? (
           <>
             {carouselSlides.map((src, i) => (
-              <img
+              <Image
                 key={src}
                 src={src}
                 alt={business.name}
-                className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${i === carouselIdx ? 'opacity-100' : 'opacity-0'}`}
+                fill
+                sizes="100vw"
+                priority={i === 0}
+                className={`object-cover object-center transition-opacity duration-700 ${i === carouselIdx ? 'opacity-100' : 'opacity-0'}`}
               />
             ))}
             <div className="absolute inset-0 bg-black/50" />
@@ -714,10 +718,12 @@ export default function BusinessDetailPage() {
                     return (
                       <div key={service.id} className="px-6 py-4 flex items-center gap-4">
                         {service.photo && (
-                          <img
+                          <Image
                             src={resolveUrl(service.photo)}
                             alt={service.name}
-                            className="w-16 h-16 rounded-xl object-cover object-center flex-shrink-0 border border-gray-100"
+                            width={64}
+                            height={64}
+                            className="rounded-xl object-cover object-center flex-shrink-0 border border-gray-100"
                           />
                         )}
                         <div className="flex-1 min-w-0">
@@ -796,10 +802,12 @@ export default function BusinessDetailPage() {
                             className={`w-full text-left px-6 py-4 flex items-center gap-4 transition-all group ${isSelected ? 'bg-indigo-50' : 'hover:bg-gray-50'}`}
                           >
                             {service.photo && (
-                              <img
+                              <Image
                                 src={resolveUrl(service.photo)}
                                 alt={service.name}
-                                className="w-14 h-14 rounded-xl object-cover object-center flex-shrink-0 border border-gray-100"
+                                width={56}
+                                height={56}
+                                className="rounded-xl object-cover object-center flex-shrink-0 border border-gray-100"
                               />
                             )}
                             <div className="flex-1 min-w-0">

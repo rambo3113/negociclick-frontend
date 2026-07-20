@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import FeaturedSlider from '@/components/FeaturedSlider';
@@ -732,7 +733,13 @@ export default function HomePage() {
                       {/* Cover */}
                       <div className={`h-44 relative flex items-center justify-center overflow-hidden ${!business.coverImage ? `bg-gradient-to-br ${meta.gradient}` : 'bg-gray-100'}`}>
                         {business.coverImage ? (
-                          <img src={resolveUrl(business.coverImage)} alt={business.name} className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110" />
+                          <Image
+                            src={resolveUrl(business.coverImage)}
+                            alt={business.name}
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            className="object-cover object-center transition-transform duration-500 group-hover:scale-110"
+                          />
                         ) : (
                           <>
                             <span className="absolute text-white/10 text-[10rem] font-black select-none leading-none">{meta.emoji}</span>
