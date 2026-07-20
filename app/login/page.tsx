@@ -27,14 +27,14 @@ const ROLE_CONFIG = {
     sub:         'a un clic',
     desc:        'Encuentra los mejores servicios en Lima, compara y agenda en segundos.',
     features: [
-      { Icon: Star,        text: 'Reseñas reales de clientes verificados' },
+      { Icon: Star,        text: 'Solo clientes reales pueden dejar reseñas' },
       { Icon: Clock,       text: 'Agenda en menos de 60 segundos' },
       { Icon: ShieldCheck, text: 'Pagos 100% seguros con Culqi' },
       { Icon: Calendar,    text: 'Recordatorio automático antes de tu cita' },
     ],
     stats: [
       { value: '36+',  label: 'Categorías' },
-      { value: '4.8★', label: 'Rating promedio' },
+      { value: '24/7',  label: 'Reservas online' },
       { value: '100%', label: 'Pago seguro' },
     ],
     welcome:       'Bienvenido de vuelta',

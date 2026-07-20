@@ -24,7 +24,7 @@ const ROLE_CONFIG = {
     sub: 'en Lima',
     desc: 'Encuentra, compara y agenda con los mejores profesionales. Sin llamadas, sin esperas.',
     features: [
-      { Icon: Star,      text: 'Reseñas reales de otros clientes' },
+      { Icon: Star,      text: 'Solo clientes reales pueden dejar reseñas' },
       { Icon: Clock,     text: 'Agenda en menos de 60 segundos' },
       { Icon: ShieldCheck, text: 'Pagos 100% seguros con Culqi' },
       { Icon: Calendar,  text: 'Recordatorios automáticos de tu cita' },
