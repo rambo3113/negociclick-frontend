@@ -33,7 +33,7 @@ const ROLE_CONFIG = {
       { Icon: Calendar,    text: 'Recordatorio automático antes de tu cita' },
     ],
     stats: [
-      { value: '27+',  label: 'Categorías' },
+      { value: '36+',  label: 'Categorías' },
       { value: '4.8★', label: 'Rating promedio' },
       { value: '100%', label: 'Pago seguro' },
     ],

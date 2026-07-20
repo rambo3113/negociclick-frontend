@@ -30,7 +30,8 @@ const ROLE_CONFIG = {
       { Icon: Calendar,  text: 'Recordatorios automáticos de tu cita' },
     ],
     stats: [
-      { value: '27+',  label: 'Categorías' },
+      // Recuento verificado contra CATEGORY_META en app/page.tsx (36 categorías reales, sin TODOS/OTRO)
+      { value: '36+',  label: 'Categorías' },
       { value: '0%',   label: 'Comisión' },
       { value: '100%', label: 'Pago seguro' },
     ],

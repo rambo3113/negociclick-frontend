@@ -17,7 +17,7 @@ const VALUES = [
 ];
 
 const STATS = [
-  { value: '27+', label: 'Categorías de servicio', icon: '📂' },
+  { value: '36+', label: 'Categorías de servicio', icon: '📂' },
   { value: '100%', label: 'Online · Sin llamadas', icon: '📱' },
   { value: '3 min', label: 'Para publicar tu negocio', icon: '⚡' },
   { value: 'S/ 0', label: 'Para empezar (plan Free)', icon: '🎁' },

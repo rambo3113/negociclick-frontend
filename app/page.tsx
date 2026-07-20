@@ -65,6 +65,7 @@ const CATEGORY_META: Record<string, { label: string; emoji: string; gradient: st
   OTRO:                { label: 'Otros',                emoji: '🏪', gradient: 'from-amber-400 to-orange-500' },
 };
 const CATEGORIES = Object.keys(CATEGORY_META);
+const REAL_CATEGORY_COUNT = CATEGORIES.filter(k => k !== 'TODOS' && k !== 'OTRO').length;
 
 const HERO_WORDS = [
   'Barberos', 'Dentistas', 'Masajistas', 'Gimnasios',
@@ -252,7 +253,7 @@ export default function HomePage() {
 
             {/* Value prop — copy persuasivo del audit */}
             <p className="text-base sm:text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
-              +27 categorías de servicios en Lima. Precios transparentes.{' '}
+              +{REAL_CATEGORY_COUNT} categorías de servicios en Lima. Precios transparentes.{' '}
               <span className="text-white font-semibold">Cancela gratis</span> si cambias de idea.
             </p>
           </div>
@@ -378,7 +379,7 @@ export default function HomePage() {
           {/* Social proof — números reales del audit */}
           <div className="flex items-center justify-center gap-0 mt-10 pt-8 border-t border-white/10 max-w-lg mx-auto">
             {[
-              { value: '27+',                                    label: 'Categorías',         sub: 'de servicios' },
+              { value: `${REAL_CATEGORY_COUNT}+`,                label: 'Categorías',         sub: 'de servicios' },
               { value: total > 0 ? `${total}+` : '100+',        label: 'Negocios activos',   sub: 'verificados' },
               { value: '0%',                                     label: 'Comisión',           sub: 'por reserva' },
               { value: '100%',                                   label: 'Pago seguro',        sub: 'con Culqi' },

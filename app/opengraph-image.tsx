@@ -116,14 +116,14 @@ export default function OGImage() {
               color: 'rgba(255,255,255,0.5)',
               fontWeight: '400',
             }}>
-              Barberos, spas, dentistas, masajes y 27 categorias mas.
+              Barberos, spas, dentistas, masajes y 36 categorias mas.
             </span>
           </div>
 
           {/* Stats abajo */}
           <div style={{ display: 'flex', gap: '16px' }}>
             {[
-              { value: '27+',  label: 'Categorias' },
+              { value: '36+',  label: 'Categorias' },
               { value: '4.8',  label: 'Rating promedio' },
               { value: 'S/ 0', label: 'Para empezar' },
               { value: '0%',   label: 'Comision' },
