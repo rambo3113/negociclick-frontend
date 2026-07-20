@@ -76,6 +76,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const completeLogin = (token: string, refreshToken: string, user: User) => {
     Cookies.set('token', token, { expires: 1 / 96, secure: true, sameSite: 'Strict' });
     Cookies.set('refreshToken', refreshToken, { expires: 7, secure: true, sameSite: 'Strict' });
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('token', token);
+      localStorage.setItem('refreshToken', refreshToken);
+    }
+
     setToken(token);
     setUser(user);
   };
