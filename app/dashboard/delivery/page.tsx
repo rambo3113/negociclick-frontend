@@ -52,6 +52,13 @@ export default function DeliveryPage() {
 
         const cfgRes  = await fetch(`${API}/businesses/${biz.id}/delivery-methods`, { headers: authHeaders() });
         const cfgData = await cfgRes.json();
+
+        if (cfgData.config) {
+          cfgData.config.ownDeliveryPrice = cfgData.config.ownDeliveryPrice
+            ? parseFloat(cfgData.config.ownDeliveryPrice)
+            : null;
+        }
+
         setConfig(cfgData.config);
       } catch {
         setError('Error cargando configuración');
@@ -83,6 +90,13 @@ export default function DeliveryPage() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || 'Error al guardar'); return; }
+
+      if (data.config) {
+        data.config.ownDeliveryPrice = data.config.ownDeliveryPrice
+          ? parseFloat(data.config.ownDeliveryPrice)
+          : null;
+      }
+
       setConfig(data.config);
       setSuccess('Configuración guardada');
       setTimeout(() => setSuccess(''), 3000);
