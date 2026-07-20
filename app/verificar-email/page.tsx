@@ -12,21 +12,28 @@ function VerifyContent() {
   const params   = useSearchParams();
   const router   = useRouter();
   const token    = params.get('token');
-  const { refreshProfile } = useAuth();
+  const { completeLogin } = useAuth();
   const [status,    setStatus]    = useState<'loading' | 'ok' | 'error'>('loading');
   const [countdown, setCountdown] = useState(4);
 
   useEffect(() => {
     if (!token) { setStatus('error'); return; }
     api.get(`/auth/verify-email?token=${token}`)
-      .then(() => {
+      .then(res => {
+        // El backend emite JWT al verificar — guardarlo para auto-login.
+        const { token: t, refreshToken: rt, user: u } = res.data;
+        if (t && rt && u) completeLogin(t, rt, u);
+        // Activar trial pendiente si el usuario se registró con ese parámetro.
+        const pendingTrial = sessionStorage.getItem('pendingTrial');
+        if (pendingTrial && u?.role === 'VENDOR') {
+          sessionStorage.removeItem('pendingTrial');
+          api.post('/subscriptions/trial', { plan: pendingTrial }).catch(() => {});
+        }
         setStatus('ok');
-        // Refresca el user en memoria: sin esto, el dashboard seguía mostrando
-        // el aviso de "verifica tu correo" con los datos viejos hasta el próximo login.
-        refreshProfile();
       })
       .catch(() => setStatus('error'));
-  }, [token, refreshProfile]);
+  // completeLogin es estable (useCallback implícito en el contexto) — seguro incluirla
+  }, [token, completeLogin]);
 
   // Countdown + redirect automático al verificar
   useEffect(() => {

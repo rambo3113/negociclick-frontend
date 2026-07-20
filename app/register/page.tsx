@@ -2,10 +2,9 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useAuth } from '@/lib/auth';
-import api from '@/lib/api';
 import Logo from '@/components/Logo';
 import GoogleIcon from '@/components/GoogleIcon';
 import {
@@ -76,7 +75,6 @@ type Role = 'CLIENT' | 'VENDOR';
 
 function RegisterPageContent() {
   const { register } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [form, setForm] = useState<{ name: string; email: string; password: string; phone: string; role: Role }>({
     name: '', email: '', password: '', phone: '', role: 'CLIENT',
@@ -89,7 +87,6 @@ function RegisterPageContent() {
     if (roleParam === 'VENDOR' || roleParam === 'CLIENT') {
       setForm(f => ({ ...f, role: roleParam }));
     }
-    // Si viene con trial, forzar rol VENDOR
     if (searchParams.get('trial')) {
       setForm(f => ({ ...f, role: 'VENDOR' }));
     }
@@ -99,6 +96,7 @@ function RegisterPageContent() {
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState({ name: false, email: false, phone: false, password: false });
   const [consent, setConsent] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const cfg = ROLE_CONFIG[form.role];
 
@@ -127,13 +125,12 @@ function RegisterPageContent() {
     setLoading(true);
     try {
       await register(form);
-      // Si viene con trial, activarlo antes de redirigir
+      // El backend devuelve respuesta genérica — no hay auto-login.
+      // Se guarda el trial en sessionStorage para activarlo después de verificar.
       if (form.role === 'VENDOR' && trialPlan && ['PRO', 'PREMIUM'].includes(trialPlan)) {
-        try { await api.post('/subscriptions/trial', { plan: trialPlan }); } catch { /* si falla, igual van al dashboard */ }
-        router.push('/dashboard?trial=activated');
-      } else {
-        router.push(form.role === 'VENDOR' ? '/dashboard' : '/');
+        sessionStorage.setItem('pendingTrial', trialPlan);
       }
+      setSubmitted(true);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Error al registrarse');
     } finally {
@@ -214,7 +211,7 @@ function RegisterPageContent() {
         </div>
       </div>
 
-      {/* ── Panel derecho — formulario ── */}
+      {/* ── Panel derecho — formulario / confirmación ── */}
       <div className="flex-1 flex items-center justify-center px-4 py-10 bg-slate-50 overflow-y-auto">
         <div className="w-full max-w-md">
 
@@ -222,6 +219,40 @@ function RegisterPageContent() {
           <div className="flex justify-center mb-8 lg:hidden">
             <Link href="/"><Logo size="md" /></Link>
           </div>
+
+          {/* ── Estado: correo enviado ── */}
+          {submitted ? (
+            <div className="text-center space-y-5">
+              <div className="relative mx-auto w-20 h-20">
+                <div className="absolute inset-0 bg-indigo-100 rounded-full animate-ping opacity-30" />
+                <div className="relative w-20 h-20 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-full flex items-center justify-center shadow-lg shadow-indigo-200 text-4xl">
+                  ✉️
+                </div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-black text-gray-900 mb-2">Revisa tu correo</h1>
+                <p className="text-gray-500 text-sm leading-relaxed max-w-xs mx-auto">
+                  Enviamos un enlace de confirmación a <strong className="text-gray-700">{form.email}</strong>.
+                  Haz clic en él para activar tu cuenta.
+                </p>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-left text-sm text-amber-800 space-y-1">
+                <p className="font-semibold">¿No llegó el correo?</p>
+                <ul className="text-xs text-amber-700 space-y-1 list-disc list-inside">
+                  <li>Revisa tu carpeta de spam o correo no deseado.</li>
+                  <li>El enlace es válido por 24 horas.</li>
+                  <li>Si ya tienes cuenta, te enviamos instrucciones para iniciar sesión.</li>
+                </ul>
+              </div>
+              <Link
+                href="/login"
+                className="block w-full text-center py-3 border-2 border-indigo-200 rounded-xl text-sm font-semibold text-indigo-600 hover:bg-indigo-50 transition-all"
+              >
+                Ya verifiqué, iniciar sesión →
+              </Link>
+            </div>
+          ) : (
+          <>
 
           {/* Header */}
           <div className="mb-6">
@@ -474,6 +505,8 @@ function RegisterPageContent() {
               Iniciar sesión
             </Link>
           </div>
+          </>
+          )}
 
         </div>
       </div>

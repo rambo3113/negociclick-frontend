@@ -87,12 +87,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (data: RegisterData) => {
-    const res = await api.post('/auth/register', data);
-    const { token: t, refreshToken: rt, user: u } = res.data;
-    Cookies.set('token', t, { expires: 1 / 96, secure: true, sameSite: 'Strict' }); // 15min
-    Cookies.set('refreshToken', rt, { expires: 7, secure: true, sameSite: 'Strict' });
-    setToken(t);
-    setUser(u);
+    // Backend no devuelve tokens: el registro ahora emite un correo de verificación
+    // y el usuario queda logueado solo después de verificar (ver /verificar-email).
+    await api.post('/auth/register', data);
   };
 
   const refreshProfile = async () => {
