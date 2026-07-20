@@ -1285,12 +1285,14 @@ export default function DashboardPage() {
                     {selectedBiz.name.charAt(0)}
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0 flex-1">
-                    <span className="font-semibold text-gray-900 text-xs sm:text-base truncate line-clamp-1 max-w-full">{selectedBiz.name}</span>
-                    {isVerified && (
-                      <span title="Perfil completo" className="flex-shrink-0">
-                        <BadgeCheck className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-500" />
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1 min-w-0 flex-1">
+                      <span className="font-semibold text-gray-900 text-[0.75rem] sm:text-base truncate line-clamp-1 max-w-full overflow-hidden whitespace-nowrap">{selectedBiz.name}</span>
+                      {isVerified && (
+                        <span title="Perfil completo" className="flex-shrink-0">
+                          <BadgeCheck className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-500" />
+                        </span>
+                      )}
+                    </div>
                     <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full flex-shrink-0">
                       {CATEGORY_LABELS[selectedBiz.category] || selectedBiz.category}
                     </span>
