@@ -98,23 +98,40 @@ function RegisterPageContent() {
   const [consent, setConsent] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileBlocked, setTurnstileBlocked] = useState(false);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
 
-  // Inject Turnstile script once and render widget
+  // Inject Turnstile script once and render widget.
+  // Handles three failure modes gracefully:
+  //   1. Script blocked (ad-blocker, firewall) → onerror fires
+  //   2. Script loads but window.turnstile never appears (extension strips it) → timeout
+  //   3. Cloudflare internal error → 'error-callback' fires, widget shows retry UI natively
   useEffect(() => {
     if (!SITE_KEY || typeof window === 'undefined') return;
-    const existing = document.getElementById('cf-turnstile-script');
+
+    // Fallback: if widget hasn't received a token after 9s, tell the user why
+    const fallbackTimer = setTimeout(() => {
+      if (!turnstileToken) setTurnstileBlocked(true);
+    }, 9000);
+
     const render = () => {
       if (!turnstileRef.current || turnstileRef.current.childElementCount > 0) return;
-      (window as any).turnstile?.render(turnstileRef.current, {
-        sitekey:  SITE_KEY,
-        theme:    'light',
-        callback: (token: string) => setTurnstileToken(token),
+      if (typeof (window as any).turnstile === 'undefined') {
+        // Script loaded but turnstile object absent (stripped by extension)
+        setTurnstileBlocked(true);
+        return;
+      }
+      (window as any).turnstile.render(turnstileRef.current, {
+        sitekey:          SITE_KEY,
+        theme:            'light',
+        callback:         (token: string) => { setTurnstileToken(token); setTurnstileBlocked(false); },
         'expired-callback': () => setTurnstileToken(''),
         'error-callback':   () => setTurnstileToken(''),
       });
     };
+
+    const existing = document.getElementById('cf-turnstile-script');
     if (!existing) {
       const s = document.createElement('script');
       s.id = 'cf-turnstile-script';
@@ -122,10 +139,13 @@ function RegisterPageContent() {
       s.async = true;
       s.defer = true;
       s.onload = render;
+      s.onerror = () => setTurnstileBlocked(true); // network block / ad-blocker
       document.head.appendChild(s);
     } else {
       render();
     }
+
+    return () => clearTimeout(fallbackTimer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [SITE_KEY]);
 
@@ -510,8 +530,26 @@ function RegisterPageContent() {
               </label>
 
               {/* Turnstile widget — invisible cuando SITE_KEY no está configurada (dev local) */}
-              {SITE_KEY && (
+              {SITE_KEY && !turnstileBlocked && (
                 <div ref={turnstileRef} className="flex justify-center" aria-label="Verificación anti-bot" />
+              )}
+
+              {/* Degradación elegante: script bloqueado o timeout */}
+              {SITE_KEY && turnstileBlocked && (
+                <div role="alert" className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm space-y-2">
+                  <p className="font-semibold text-amber-800">No pudimos cargar la verificación de seguridad</p>
+                  <p className="text-amber-700 text-xs leading-relaxed">
+                    Tu bloqueador de anuncios o la red está impidiendo el CAPTCHA de Cloudflare.
+                    Desactívalo para esta página y recarga, o prueba desde otra red.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => window.location.reload()}
+                    className="text-xs font-bold text-amber-800 underline hover:text-amber-900 transition-colors"
+                  >
+                    Recargar página →
+                  </button>
+                </div>
               )}
 
               {/* Submit */}
