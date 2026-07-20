@@ -177,11 +177,12 @@ export default function BusinessDetailPage() {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderError, setOrderError] = useState('');
 
-  // Delivery system SIMPLE
-  const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup');
-  const [deliveryZoneName, setDeliveryZoneName] = useState('');
+  // Delivery system — carga dinámica desde DeliveryConfig del negocio
+  const [deliveryMethod, setDeliveryMethod] = useState<'PICKUP' | 'OWN_DELIVERY' | 'RAPPI' | 'BOLT' | 'GLOVO' | 'WHATSAPP'>('PICKUP');
+  const [deliveryConfig, setDeliveryConfig] = useState<any>(null);
   const [deliveryCost, setDeliveryCost] = useState(0);
-  const [deliveryMethods, setDeliveryMethods] = useState<any>(null);
+  const [deliveryTimeMin, setDeliveryTimeMin] = useState<number | null>(null);
+  const [deliveryTimeMax, setDeliveryTimeMax] = useState<number | null>(null);
 
   // Review modal
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -227,7 +228,7 @@ export default function BusinessDetailPage() {
     e.preventDefault();
     if (!user) { router.push('/login'); return; }
     if (cart.length === 0) return;
-    if (!deliveryAddress.trim()) { setOrderError('Ingresa una dirección de entrega.'); return; }
+    if (deliveryMethod === 'OWN_DELIVERY' && !deliveryAddress.trim()) { setOrderError('Ingresa una dirección de entrega.'); return; }
     if (deliveryDate) {
       const today = getLimaDateString();
       if (deliveryDate < today) {
@@ -252,12 +253,13 @@ export default function BusinessDetailPage() {
         businessId: business?.id,
         date: deliveryISO,
         notes: structured,
-        orderTotal: cartTotal + deliveryCost,
-        deliveryAddress,
+        orderTotal: cartTotal + (deliveryMethod === 'OWN_DELIVERY' ? deliveryCost : 0),
+        deliveryAddress: deliveryMethod === 'OWN_DELIVERY' ? deliveryAddress : null,
         // Delivery system
         deliveryMethod,
-        deliveryZoneName,
-        deliveryCost,
+        deliveryPrice: deliveryMethod === 'OWN_DELIVERY' ? deliveryCost : null,
+        deliveryTimeMin,
+        deliveryTimeMax,
       });
       if (business?.onlinePaymentEnabled) {
         let payRes;
@@ -273,7 +275,7 @@ export default function BusinessDetailPage() {
         });
       } else {
         setCart([]); setDeliveryAddress(''); setDeliveryDate(''); setOrderNotes('');
-        setDeliveryMethod('pickup'); setDeliveryZoneName(''); setDeliveryCost(0);
+        setDeliveryMethod('PICKUP'); setDeliveryCost(0); setDeliveryTimeMin(null); setDeliveryTimeMax(null);
         setOrderSuccess(true);
       }
     } catch (err: any) {
@@ -298,13 +300,13 @@ export default function BusinessDetailPage() {
       api.get(`/businesses/${id}/hours`).catch(() => ({ data: { hours: [] } })),
       api.get(`/businesses/${id}/photos`).catch(() => ({ data: { photos: [] } })),
       api.get(`/businesses/${id}/availability`).catch(() => ({ data: { blocks: [] } })),
-      api.get(`/businesses/${id}/delivery-methods`).catch(() => ({ data: { methods: null } })),
+      api.get(`/businesses/${id}/delivery-methods`).catch(() => ({ data: { config: null } })),
     ]).then(([bizRes, hoursRes, photosRes, availRes, deliveryRes]) => {
       setBusiness(bizRes.data.business);
       setHours(hoursRes.data.hours ?? []);
       setPhotos(photosRes.data.photos ?? []);
       setAvailBlocks(availRes.data.blocks ?? []);
-      setDeliveryMethods(deliveryRes.data.methods);
+      setDeliveryConfig(deliveryRes.data.config ?? null);
       // Registrar vista (fire-and-forget)
       api.post(`/businesses/${id}/view`).catch(() => {});
     }).catch(() => {})
@@ -1096,14 +1098,14 @@ export default function BusinessDetailPage() {
                           </div>
                         ))}
                       </div>
-                      {deliveryMethod === 'delivery' && deliveryCost > 0 && (
+                      {deliveryMethod === 'OWN_DELIVERY' && deliveryCost > 0 && (
                         <>
                           <div className="px-4 py-2 border-t border-gray-100 bg-white flex items-center justify-between text-sm text-gray-600">
                             <span>Subtotal</span>
                             <span>S/ {cartTotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
                           </div>
                           <div className="px-4 py-2 bg-white flex items-center justify-between text-sm text-orange-600">
-                            <span>Delivery ({deliveryZoneName})</span>
+                            <span>Delivery</span>
                             <span>S/ {deliveryCost.toFixed(2)}</span>
                           </div>
                         </>
@@ -1111,7 +1113,7 @@ export default function BusinessDetailPage() {
                       <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
                         <span className="text-sm font-bold text-gray-700">Total</span>
                         <span className="text-lg font-black text-indigo-600">
-                          S/ {(cartTotal + deliveryCost).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                          S/ {(cartTotal + (deliveryMethod === 'OWN_DELIVERY' ? deliveryCost : 0)).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
                         </span>
                       </div>
                     </>
@@ -1126,74 +1128,109 @@ export default function BusinessDetailPage() {
                     )}
                     
                     {/* Delivery method selector */}
-                    {deliveryMethods && (
+                    {deliveryConfig && (
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700">Método de entrega</label>
-                        {deliveryMethods.pickup?.enabled && (
+                        {deliveryConfig.pickupEnabled && (
                           <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                             <input
                               type="radio"
                               name="delivery"
-                              value="pickup"
-                              checked={deliveryMethod === 'pickup'}
-                              onChange={() => { setDeliveryMethod('pickup'); setDeliveryCost(0); setDeliveryZoneName(''); }}
+                              value="PICKUP"
+                              checked={deliveryMethod === 'PICKUP'}
+                              onChange={() => {
+                                setDeliveryMethod('PICKUP');
+                                setDeliveryCost(0);
+                                setDeliveryTimeMin(null);
+                                setDeliveryTimeMax(null);
+                              }}
                               className="w-4 h-4"
                             />
-                            <span className="text-sm font-medium text-gray-700">Retirar en tienda <span className="text-gray-400 font-normal">(S/ 0)</span></span>
+                            <span className="text-sm font-medium text-gray-700">🏪 Retirar en tienda <span className="text-gray-400 font-normal">(S/ 0)</span></span>
                           </label>
                         )}
-                        {deliveryMethods.delivery?.enabled && (
-                          <>
-                            <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                              <input
-                                type="radio"
-                                name="delivery"
-                                value="delivery"
-                                checked={deliveryMethod === 'delivery'}
-                                onChange={() => setDeliveryMethod('delivery')}
-                                className="w-4 h-4"
-                              />
-                              <span className="text-sm font-medium text-gray-700">Envío a domicilio</span>
-                            </label>
-                            {deliveryMethod === 'delivery' && deliveryMethods.delivery?.zones && (
-                              <div className="ml-7 space-y-2">
-                                <select
-                                  value={deliveryZoneName}
-                                  onChange={(e) => {
-                                    const zone = deliveryMethods.delivery.zones.find((z: any) => z.name === e.target.value);
-                                    setDeliveryZoneName(e.target.value);
-                                    setDeliveryCost(zone ? Number(zone.cost) : 0);
-                                  }}
-                                  className="w-full p-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                >
-                                  <option value="">-- Selecciona zona --</option>
-                                  {deliveryMethods.delivery.zones.map((zone: any) => (
-                                    <option key={zone.id} value={zone.name}>
-                                      {zone.name} (S/ {Number(zone.cost).toFixed(2)})
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                            )}
-                          </>
+                        {deliveryConfig.ownDeliveryEnabled && (
+                          <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="delivery"
+                              value="OWN_DELIVERY"
+                              checked={deliveryMethod === 'OWN_DELIVERY'}
+                              onChange={() => {
+                                setDeliveryMethod('OWN_DELIVERY');
+                                setDeliveryCost(deliveryConfig.ownDeliveryPrice || 0);
+                                setDeliveryTimeMin(deliveryConfig.ownDeliveryTimeMin);
+                                setDeliveryTimeMax(deliveryConfig.ownDeliveryTimeMax);
+                              }}
+                              className="w-4 h-4"
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                              🚚 Entregas propias — S/ {Number(deliveryConfig.ownDeliveryPrice || 0).toFixed(2)}
+                              {deliveryConfig.ownDeliveryTimeMin && deliveryConfig.ownDeliveryTimeMax && (
+                                <span className="text-gray-400 font-normal"> ({deliveryConfig.ownDeliveryTimeMin}-{deliveryConfig.ownDeliveryTimeMax} min)</span>
+                              )}
+                            </span>
+                          </label>
+                        )}
+                        {deliveryConfig.rappiEnabled && (
+                          <a
+                            href={deliveryConfig.rappiLink || '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                          >
+                            <span className="text-sm font-medium text-indigo-600">🍔 Pedir por Rappi</span>
+                          </a>
+                        )}
+                        {deliveryConfig.boltEnabled && (
+                          <a
+                            href={deliveryConfig.boltLink || '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                          >
+                            <span className="text-sm font-medium text-indigo-600">⚡ Pedir por Bolt Food</span>
+                          </a>
+                        )}
+                        {deliveryConfig.glovoEnabled && (
+                          <a
+                            href={deliveryConfig.glovoLink || '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                          >
+                            <span className="text-sm font-medium text-indigo-600">📦 Pedir por Glovo</span>
+                          </a>
+                        )}
+                        {deliveryConfig.whatsappEnabled && deliveryConfig.whatsappNumber && (
+                          <a
+                            href={`https://wa.me/${deliveryConfig.whatsappNumber.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                          >
+                            <span className="text-sm font-medium text-indigo-600">💬 Coordinar por WhatsApp</span>
+                          </a>
                         )}
                       </div>
                     )}
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
-                        <Truck className="w-4 h-4 text-indigo-400" />
-                        Dirección de entrega
-                      </label>
-                      <input
-                        type="text"
-                        value={deliveryAddress}
-                        onChange={e => setDeliveryAddress(e.target.value)}
-                        placeholder="Ej: Av. Larco 1234, Miraflores"
-                        required
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
-                      />
-                    </div>
+                    {deliveryMethod === 'OWN_DELIVERY' && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
+                          <Truck className="w-4 h-4 text-indigo-400" />
+                          Dirección de entrega
+                        </label>
+                        <input
+                          type="text"
+                          value={deliveryAddress}
+                          onChange={e => setDeliveryAddress(e.target.value)}
+                          placeholder="Ej: Av. Larco 1234, Miraflores"
+                          required
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
+                        />
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
                         <Calendar className="w-4 h-4 text-indigo-400" />
