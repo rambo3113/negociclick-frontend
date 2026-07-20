@@ -297,7 +297,7 @@ export default function HomePage() {
                   {hasActiveFilters && <span className="w-2 h-2 bg-indigo-600 rounded-full" aria-hidden="true" />}
                 </button>
                 {(search || city !== 'TODAS') && (
-                  <button aria-label="Limpiar búsqueda" onClick={clearAll} className="mr-3 text-gray-300 hover:text-gray-500 transition flex-shrink-0">
+                  <button aria-label="Limpiar búsqueda" onClick={clearAll} className="mr-3 text-gray-400 hover:text-gray-600 transition flex-shrink-0">
                     <X className="w-5 h-5" aria-hidden="true" />
                   </button>
                 )}
@@ -662,7 +662,7 @@ export default function HomePage() {
               🔍
             </div>
             <h3 className="text-2xl font-black text-gray-900 mb-2">Sin resultados</h3>
-            <p className="text-gray-400 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
+            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
               No encontramos negocios con esa búsqueda. Prueba con otra categoría o limpia los filtros.
             </p>
             <button
@@ -672,7 +672,7 @@ export default function HomePage() {
               <X className="w-4 h-4" /> Limpiar filtros
             </button>
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">Categorías populares</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">Categorías populares</p>
               <div className="flex flex-wrap gap-2 justify-center max-w-lg mx-auto">
                 {['BARBERIA','SPA','SALON_BELLEZA','ODONTOLOGIA','GIMNASIO','MASAJES_DOMICILIO','NUTRICIONISTA','NAIL_ART'].map(key => {
                   const m = CATEGORY_META[key];
@@ -698,7 +698,7 @@ export default function HomePage() {
                     ? `Resultados para "${search}"`
                     : category === 'TODOS' ? '¿Qué necesitas hoy?' : CATEGORY_META[category]?.label}
                 </h2>
-                <p className="text-sm text-gray-400">{total} negocios verificados disponibles</p>
+                <p className="text-sm text-gray-500">{total} negocios verificados disponibles</p>
               </div>
               {(search || category !== 'TODOS' || city !== 'TODAS' || hasActiveFilters) && (
                 <button onClick={clearAll} className="text-xs text-indigo-600 font-semibold hover:underline flex-shrink-0">
@@ -797,23 +797,23 @@ export default function HomePage() {
                         {business.averageRating ? (
                           <div className="flex items-center gap-2 mb-2">
                             <StarRow rating={business.averageRating} />
-                            <span className="text-xs text-gray-400">{business.averageRating} · {business.totalReviews} reseña{business.totalReviews !== 1 ? 's' : ''}</span>
+                            <span className="text-xs text-gray-500">{business.averageRating} · {business.totalReviews} reseña{business.totalReviews !== 1 ? 's' : ''}</span>
                           </div>
                         ) : (
-                          <p className="text-xs text-gray-300 mb-2">Sin reseñas aún</p>
+                          <p className="text-xs text-gray-500 mb-2">Sin reseñas aún</p>
                         )}
 
-                        <div className="flex items-center gap-1 text-sm text-gray-400 mb-2">
+                        <div className="flex items-center gap-1 text-sm text-gray-500 mb-2">
                           <MapPin className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
                           <span>{business.city}</span>
                         </div>
 
                         {business.description && (
-                          <p className="text-sm text-gray-400 line-clamp-2 mb-3 leading-relaxed">{business.description}</p>
+                          <p className="text-sm text-gray-500 line-clamp-2 mb-3 leading-relaxed">{business.description}</p>
                         )}
 
                         <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                          {(() => { const n = business.services?.length ?? 0; return n > 0 ? <span className="text-xs text-gray-400">{n} servicio{n !== 1 ? 's' : ''}</span> : null; })()}
+                          {(() => { const n = business.services?.length ?? 0; return n > 0 ? <span className="text-xs text-gray-500">{n} servicio{n !== 1 ? 's' : ''}</span> : null; })()}
                           <span className="ml-auto flex items-center gap-1 text-xs font-bold text-indigo-600 group-hover:gap-2 transition-all">
                             Ver disponibilidad <ArrowRight className="w-3.5 h-3.5" />
                           </span>
@@ -867,7 +867,7 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto px-4 text-center">
           <span className="inline-block text-xs font-bold text-indigo-600 bg-indigo-50 px-4 py-1.5 rounded-full mb-4 tracking-widest uppercase">Así de fácil</span>
           <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Tu cita en menos de 2 minutos</h2>
-          <p className="text-gray-400 mb-14 max-w-md mx-auto text-sm">Sin llamadas, sin esperas, sin complicaciones. Solo haz clic y listo.</p>
+          <p className="text-gray-500 mb-14 max-w-md mx-auto text-sm">Sin llamadas, sin esperas, sin complicaciones. Solo haz clic y listo.</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
             {[
               { step: '01', emoji: '🔍', title: 'Elige el servicio', desc: 'Busca entre cientos de negocios verificados en Lima. Filtra por precio, categoría o distancia.', time: '30 seg' },
@@ -882,7 +882,7 @@ export default function HomePage() {
                   <span className="absolute -top-2 -right-2 w-7 h-7 bg-white border-2 border-indigo-100 rounded-full flex items-center justify-center text-[10px] font-black text-indigo-600 shadow-sm">{s.step}</span>
                 </div>
                 <h3 className="font-black text-gray-900 text-xl mb-2">{s.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed max-w-xs mb-3">{s.desc}</p>
+                <p className="text-gray-500 text-sm leading-relaxed max-w-xs mb-3">{s.desc}</p>
                 <span className="text-[11px] font-bold text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full">{s.time}</span>
               </div>
             ))}

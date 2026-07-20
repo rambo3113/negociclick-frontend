@@ -484,9 +484,48 @@ export default function BusinessDetailPage() {
   if (loading) return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
-      <div className="flex-1 flex flex-col items-center justify-center gap-3">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-gray-400 text-sm">Cargando negocio...</p>
+      {/* Hero skeleton */}
+      <div className="relative overflow-hidden min-h-[280px] bg-gradient-to-br from-indigo-500 to-purple-600 animate-pulse">
+        <div className="relative max-w-5xl mx-auto px-4 pt-8 pb-10">
+          <div className="h-5 w-20 bg-white/20 rounded-full mb-6" />
+          <div className="flex flex-col sm:flex-row sm:items-end gap-5">
+            <div className="w-20 h-20 rounded-2xl bg-white/20 flex-shrink-0" />
+            <div className="flex-1 space-y-2">
+              <div className="flex gap-2">
+                <div className="h-6 w-24 bg-white/20 rounded-full" />
+                <div className="h-6 w-20 bg-white/20 rounded-full" />
+              </div>
+              <div className="h-8 w-56 bg-white/20 rounded-xl" />
+              <div className="h-4 w-36 bg-white/20 rounded-lg" />
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Content skeleton */}
+      <div className="max-w-5xl mx-auto px-4 py-8 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 space-y-3 animate-pulse">
+              <div className="h-5 w-32 bg-gray-200 rounded" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="rounded-xl border border-gray-100 p-4 space-y-2">
+                    <div className="h-4 w-3/4 bg-gray-200 rounded" />
+                    <div className="h-4 w-1/2 bg-gray-100 rounded" />
+                    <div className="h-8 w-full bg-gray-100 rounded-lg" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="space-y-4 animate-pulse">
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 space-y-3">
+              <div className="h-4 w-24 bg-gray-200 rounded" />
+              <div className="h-4 w-40 bg-gray-100 rounded" />
+              <div className="h-4 w-32 bg-gray-100 rounded" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -183,7 +183,7 @@ export default async function CategoriaPage(
           <Link href="/" className="hover:text-indigo-600 transition">Inicio</Link>
           <span>/</span>
           <span className="text-gray-800 font-medium">{meta.label}</span>
-          {businesses.length > 0 && <span className="ml-auto text-xs text-gray-400">{businesses.length} negocio{businesses.length !== 1 ? 's' : ''} encontrado{businesses.length !== 1 ? 's' : ''}</span>}
+          {businesses.length > 0 && <span className="ml-auto text-xs text-gray-500">{businesses.length} negocio{businesses.length !== 1 ? 's' : ''} encontrado{businesses.length !== 1 ? 's' : ''}</span>}
         </div>
       </div>
 

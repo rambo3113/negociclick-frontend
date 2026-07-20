@@ -226,7 +226,7 @@ function RegisterPageContent() {
           {/* Header */}
           <div className="mb-6">
             <h1 className="text-3xl font-black text-gray-900">Crear cuenta</h1>
-            <p className="text-gray-400 text-sm mt-1">Gratis, sin tarjeta de crédito.</p>
+            <p className="text-gray-500 text-sm mt-1">Gratis, sin tarjeta de crédito.</p>
           </div>
 
           {/* ── Role selector — paso 1 ── */}
@@ -271,7 +271,7 @@ function RegisterPageContent() {
                       <p className={`text-sm font-bold ${active ? (role === 'CLIENT' ? 'text-indigo-700' : 'text-emerald-700') : 'text-gray-800'}`}>
                         {c.roleLabel}
                       </p>
-                      <p className="text-xs text-gray-400 mt-0.5 leading-snug">{c.roleSub}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 leading-snug">{c.roleSub}</p>
                     </div>
                   </button>
                 );
