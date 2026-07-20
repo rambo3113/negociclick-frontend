@@ -1342,6 +1342,15 @@ export default function DashboardPage() {
                     {t === 'Perfil' && isFreePlan && <Lock className="w-3 h-3 text-gray-400" />}
                   </button>
                 ))}
+                {/* Entregas — solo negocios ORDER (pedidos con delivery) */}
+                {businesses.find(b => b.id === selectedBizId)?.orderMode === 'ORDER' && (
+                  <Link
+                    href="/dashboard/delivery"
+                    className="flex-shrink-0 flex items-center gap-1.5 px-5 py-3.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition-colors border-l border-gray-100"
+                  >
+                    🚚 Entregas
+                  </Link>
+                )}
               </div>
 
               {/* ── TAB: RESERVAS ── */}
