@@ -39,6 +39,7 @@ interface RegisterData {
   password: string;
   role?: string;
   phone?: string;
+  turnstileToken?: string;
 }
 
 const AuthContext = createContext<AuthContextType>({ refreshProfile: async () => {} } as unknown as AuthContextType);

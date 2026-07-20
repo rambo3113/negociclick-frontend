@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
@@ -97,6 +97,37 @@ function RegisterPageContent() {
   const [touched, setTouched] = useState({ name: false, email: false, phone: false, password: false });
   const [consent, setConsent] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
+
+  // Inject Turnstile script once and render widget
+  useEffect(() => {
+    if (!SITE_KEY || typeof window === 'undefined') return;
+    const existing = document.getElementById('cf-turnstile-script');
+    const render = () => {
+      if (!turnstileRef.current || turnstileRef.current.childElementCount > 0) return;
+      (window as any).turnstile?.render(turnstileRef.current, {
+        sitekey:  SITE_KEY,
+        theme:    'light',
+        callback: (token: string) => setTurnstileToken(token),
+        'expired-callback': () => setTurnstileToken(''),
+        'error-callback':   () => setTurnstileToken(''),
+      });
+    };
+    if (!existing) {
+      const s = document.createElement('script');
+      s.id = 'cf-turnstile-script';
+      s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+      s.async = true;
+      s.defer = true;
+      s.onload = render;
+      document.head.appendChild(s);
+    } else {
+      render();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [SITE_KEY]);
 
   const cfg = ROLE_CONFIG[form.role];
 
@@ -124,7 +155,7 @@ function RegisterPageContent() {
 
     setLoading(true);
     try {
-      await register(form);
+      await register({ ...form, turnstileToken: turnstileToken || undefined });
       // El backend devuelve respuesta genérica — no hay auto-login.
       // Se guarda el trial en sessionStorage para activarlo después de verificar.
       if (form.role === 'VENDOR' && trialPlan && ['PRO', 'PREMIUM'].includes(trialPlan)) {
@@ -478,10 +509,15 @@ function RegisterPageContent() {
                 </span>
               </label>
 
+              {/* Turnstile widget — invisible cuando SITE_KEY no está configurada (dev local) */}
+              {SITE_KEY && (
+                <div ref={turnstileRef} className="flex justify-center" aria-label="Verificación anti-bot" />
+              )}
+
               {/* Submit */}
               <button
                 type="submit"
-                disabled={loading || !consent || (form.password.length > 0 && !passwordValid)}
+                disabled={loading || !consent || (form.password.length > 0 && !passwordValid) || (!!SITE_KEY && !turnstileToken)}
                 className={`w-full bg-gradient-to-r ${cfg.btnColor} text-white py-3.5 rounded-xl font-bold text-sm hover:shadow-lg hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none flex items-center justify-center gap-2 mt-1`}
               >
                 {loading
