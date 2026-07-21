@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
+import Script from 'next/script';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useAuth } from '@/lib/auth';
@@ -14,9 +15,10 @@ import {
 } from 'lucide-react';
 
 // ── Turnstile widget aislado ─────────────────────────────────────────────────
-// Se monta UNA sola vez. El widgetId devuelto por turnstile.render() se guarda
-// en un ref para poder llamar turnstile.remove() en el cleanup y evitar widgets
-// huérfanos al cambiar el rol Cliente↔Negocio o al desmontar la página.
+// Usa next/script strategy="afterInteractive" para que Next.js gestione el
+// defer/deduplicación y Lighthouse no lo cuente como render-blocking.
+// El widgetId se guarda en ref para llamar remove() antes del desmontaje y
+// evitar el warning "Cannot find Widget".
 interface TurnstileWidgetProps {
   siteKey: string;
   onToken: (token: string) => void;
@@ -27,58 +29,55 @@ interface TurnstileWidgetProps {
 function TurnstileWidget({ siteKey, onToken, onExpire, onBlock }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef  = useRef<string | null>(null);
+  const timerRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const removeWidget = () => {
+    try {
+      if (widgetIdRef.current !== null) {
+        (window as any).turnstile?.remove(widgetIdRef.current);
+        widgetIdRef.current = null;
+      }
+    } catch {}
+  };
+
+  const clearTimer = () => {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+  };
+
+  const renderWidget = () => {
+    if (!containerRef.current || widgetIdRef.current !== null) return;
+    const tw = (window as any).turnstile;
+    if (!tw) { clearTimer(); removeWidget(); onBlock(); return; }
+    widgetIdRef.current = tw.render(containerRef.current, {
+      sitekey:            siteKey,
+      theme:              'light',
+      callback:           (token: string) => { clearTimer(); onToken(token); },
+      'expired-callback': () => onExpire(),
+      'error-callback':   () => onExpire(),
+    });
+  };
+
+  // Si el script ya estaba cacheado (navegación de vuelta al registro),
+  // window.turnstile existe antes de que <Script onLoad> dispare.
   useEffect(() => {
-    // Elimina el widget del DOM de Turnstile ANTES de notificar al padre para
-    // que React lo desmonte. Si el remove() se hiciera después (en el cleanup),
-    // el div ya no estaría en el DOM y Turnstile lanzaría "Cannot find Widget".
-    const removeWidget = () => {
-      try {
-        if (widgetIdRef.current !== null) {
-          (window as any).turnstile?.remove(widgetIdRef.current);
-          widgetIdRef.current = null;
-        }
-      } catch {}
-    };
-
-    const fallbackTimer = setTimeout(() => { removeWidget(); onBlock(); }, 9000);
-
-    const renderWidget = () => {
-      if (!containerRef.current) return;
-      const tw = (window as any).turnstile;
-      if (!tw) { removeWidget(); onBlock(); return; }
-      if (widgetIdRef.current !== null) return; // ya renderizado
-      widgetIdRef.current = tw.render(containerRef.current, {
-        sitekey:            siteKey,
-        theme:              'light',
-        callback:           (token: string) => { clearTimeout(fallbackTimer); onToken(token); },
-        'expired-callback': () => onExpire(),
-        'error-callback':   () => onExpire(),
-      });
-    };
-
-    const existing = document.getElementById('cf-turnstile-script');
-    if (!existing) {
-      const s = document.createElement('script');
-      s.id    = 'cf-turnstile-script';
-      s.src   = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-      s.async = true;
-      s.defer = true;
-      s.onload  = renderWidget;
-      s.onerror = () => { clearTimeout(fallbackTimer); removeWidget(); onBlock(); };
-      document.head.appendChild(s);
-    } else {
-      renderWidget();
-    }
-
-    // widgetIdRef.current ya es null si removeWidget() se llamó antes (idempotente).
-    return () => { clearTimeout(fallbackTimer); removeWidget(); };
-  // Las callbacks son estables (definidas inline en el padre con useCallback o pasadas una vez).
-  // siteKey tampoco cambia en tiempo de ejecución.
+    timerRef.current = setTimeout(() => { removeWidget(); onBlock(); }, 20_000);
+    if (typeof (window as any).turnstile !== 'undefined') renderWidget();
+    return () => { clearTimer(); removeWidget(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <div ref={containerRef} className="flex justify-center" aria-label="Verificación anti-bot" />;
+  return (
+    <>
+      <Script
+        id="cf-turnstile-script"
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+        strategy="afterInteractive"
+        onLoad={renderWidget}
+        onError={() => { clearTimer(); removeWidget(); onBlock(); }}
+      />
+      <div ref={containerRef} className="flex justify-center" aria-label="Verificación anti-bot" />
+    </>
+  );
 }
 
 const ROLE_CONFIG = {

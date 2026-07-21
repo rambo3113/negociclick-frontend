@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import { ToastProvider } from "@/components/Toast";
@@ -7,7 +8,10 @@ import ChatWidget from "@/components/ChatWidget";
 import CookieBanner from "@/components/CookieBanner";
 import NextAuthSessionProvider from "@/components/NextAuthSessionProvider";
 
-const geist = Geist({ subsets: ["latin"] });
+const geist = Geist({ subsets: ["latin"], display: "swap" });
+
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID ?? '';
+const GA_ID  = process.env.NEXT_PUBLIC_GA_ID  ?? '';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.negociclick.com'),
@@ -58,6 +62,38 @@ export default function RootLayout({
             </ToastProvider>
           </AuthProvider>
         </NextAuthSessionProvider>
+
+        {/* ── Google Tag Manager ── lazyOnload: se carga tras load+idle, sin bloquear render */}
+        {GTM_ID && (
+          <>
+            <Script
+              id="gtm-script"
+              src={`https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`}
+              strategy="lazyOnload"
+            />
+            <Script id="gtm-init" strategy="lazyOnload">{`
+              window.dataLayer=window.dataLayer||[];
+              window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+            `}</Script>
+          </>
+        )}
+
+        {/* ── Google Analytics (GA4) — solo si no hay GTM configurado ── */}
+        {GA_ID && !GTM_ID && (
+          <>
+            <Script
+              id="ga-script"
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="lazyOnload"
+            />
+            <Script id="ga-init" strategy="lazyOnload">{`
+              window.dataLayer=window.dataLayer||[];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js',new Date());
+              gtag('config','${GA_ID}');
+            `}</Script>
+          </>
+        )}
       </body>
     </html>
   );
