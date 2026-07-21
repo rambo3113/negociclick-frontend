@@ -1286,7 +1286,7 @@ export default function DashboardPage() {
                     {selectedBiz.name.charAt(0)}
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0 flex-1">
-                    <span className="font-semibold text-gray-900 text-xs sm:text-base truncate line-clamp-1 max-w-full">{selectedBiz.name}</span>
+                    <span title={selectedBiz.name} className="font-semibold text-gray-900 text-sm sm:text-base break-words leading-tight line-clamp-2 min-w-0">{selectedBiz.name}</span>
                     {isVerified && (
                       <span title="Perfil completo" className="flex-shrink-0">
                         <BadgeCheck className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-500" />
@@ -2205,12 +2205,12 @@ export default function DashboardPage() {
                 <div className="p-6 space-y-4">
                   {businesses.map(biz => (
                     <div key={biz.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold">
+                      <div className="flex items-center gap-4 min-w-0 flex-1">
+                        <div className="w-11 h-11 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0">
                           {biz.name.charAt(0)}
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{biz.name}</p>
+                        <div className="min-w-0">
+                          <p title={biz.name} className="font-semibold text-gray-900 break-words leading-tight line-clamp-2 min-w-0">{biz.name}</p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">{CATEGORY_LABELS[biz.category] || biz.category}</span>
                             <span className="text-xs text-gray-400">{biz.city}</span>
