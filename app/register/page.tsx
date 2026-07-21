@@ -13,6 +13,74 @@ import {
   Sparkles, ShieldCheck, Clock, Star, TrendingUp, Calendar,
 } from 'lucide-react';
 
+// ── Turnstile widget aislado ─────────────────────────────────────────────────
+// Se monta UNA sola vez. El widgetId devuelto por turnstile.render() se guarda
+// en un ref para poder llamar turnstile.remove() en el cleanup y evitar widgets
+// huérfanos al cambiar el rol Cliente↔Negocio o al desmontar la página.
+interface TurnstileWidgetProps {
+  siteKey: string;
+  onToken: (token: string) => void;
+  onExpire: () => void;
+  onBlock: () => void;
+}
+
+function TurnstileWidget({ siteKey, onToken, onExpire, onBlock }: TurnstileWidgetProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef  = useRef<string | null>(null);
+
+  useEffect(() => {
+    // Elimina el widget del DOM de Turnstile ANTES de notificar al padre para
+    // que React lo desmonte. Si el remove() se hiciera después (en el cleanup),
+    // el div ya no estaría en el DOM y Turnstile lanzaría "Cannot find Widget".
+    const removeWidget = () => {
+      try {
+        if (widgetIdRef.current !== null) {
+          (window as any).turnstile?.remove(widgetIdRef.current);
+          widgetIdRef.current = null;
+        }
+      } catch {}
+    };
+
+    const fallbackTimer = setTimeout(() => { removeWidget(); onBlock(); }, 9000);
+
+    const renderWidget = () => {
+      if (!containerRef.current) return;
+      const tw = (window as any).turnstile;
+      if (!tw) { removeWidget(); onBlock(); return; }
+      if (widgetIdRef.current !== null) return; // ya renderizado
+      widgetIdRef.current = tw.render(containerRef.current, {
+        sitekey:            siteKey,
+        theme:              'light',
+        callback:           (token: string) => { clearTimeout(fallbackTimer); onToken(token); },
+        'expired-callback': () => onExpire(),
+        'error-callback':   () => onExpire(),
+      });
+    };
+
+    const existing = document.getElementById('cf-turnstile-script');
+    if (!existing) {
+      const s = document.createElement('script');
+      s.id    = 'cf-turnstile-script';
+      s.src   = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+      s.async = true;
+      s.defer = true;
+      s.onload  = renderWidget;
+      s.onerror = () => { clearTimeout(fallbackTimer); removeWidget(); onBlock(); };
+      document.head.appendChild(s);
+    } else {
+      renderWidget();
+    }
+
+    // widgetIdRef.current ya es null si removeWidget() se llamó antes (idempotente).
+    return () => { clearTimeout(fallbackTimer); removeWidget(); };
+  // Las callbacks son estables (definidas inline en el padre con useCallback o pasadas una vez).
+  // siteKey tampoco cambia en tiempo de ejecución.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return <div ref={containerRef} className="flex justify-center" aria-label="Verificación anti-bot" />;
+}
+
 const ROLE_CONFIG = {
   CLIENT: {
     gradient: 'from-slate-900 via-indigo-950 to-violet-950',
@@ -99,55 +167,7 @@ function RegisterPageContent() {
   const [submitted, setSubmitted] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState('');
   const [turnstileBlocked, setTurnstileBlocked] = useState(false);
-  const turnstileRef = useRef<HTMLDivElement>(null);
   const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
-
-  // Inject Turnstile script once and render widget.
-  // Handles three failure modes gracefully:
-  //   1. Script blocked (ad-blocker, firewall) → onerror fires
-  //   2. Script loads but window.turnstile never appears (extension strips it) → timeout
-  //   3. Cloudflare internal error → 'error-callback' fires, widget shows retry UI natively
-  useEffect(() => {
-    if (!SITE_KEY || typeof window === 'undefined') return;
-
-    // Fallback: if widget hasn't received a token after 9s, tell the user why
-    const fallbackTimer = setTimeout(() => {
-      if (!turnstileToken) setTurnstileBlocked(true);
-    }, 9000);
-
-    const render = () => {
-      if (!turnstileRef.current || turnstileRef.current.childElementCount > 0) return;
-      if (typeof (window as any).turnstile === 'undefined') {
-        // Script loaded but turnstile object absent (stripped by extension)
-        setTurnstileBlocked(true);
-        return;
-      }
-      (window as any).turnstile.render(turnstileRef.current, {
-        sitekey:          SITE_KEY,
-        theme:            'light',
-        callback:         (token: string) => { setTurnstileToken(token); setTurnstileBlocked(false); },
-        'expired-callback': () => setTurnstileToken(''),
-        'error-callback':   () => setTurnstileToken(''),
-      });
-    };
-
-    const existing = document.getElementById('cf-turnstile-script');
-    if (!existing) {
-      const s = document.createElement('script');
-      s.id = 'cf-turnstile-script';
-      s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-      s.async = true;
-      s.defer = true;
-      s.onload = render;
-      s.onerror = () => setTurnstileBlocked(true); // network block / ad-blocker
-      document.head.appendChild(s);
-    } else {
-      render();
-    }
-
-    return () => clearTimeout(fallbackTimer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [SITE_KEY]);
 
   const cfg = ROLE_CONFIG[form.role];
 
@@ -393,12 +413,13 @@ function RegisterPageContent() {
 
               {/* Nombre */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label htmlFor="reg-name" className="block text-sm font-semibold text-gray-700 mb-1.5">
                   {form.role === 'VENDOR' ? 'Tu nombre completo' : 'Nombre completo'}
                 </label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   <input
+                    id="reg-name"
                     type="text"
                     value={form.name}
                     onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -412,10 +433,11 @@ function RegisterPageContent() {
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Correo electrónico</label>
+                <label htmlFor="reg-email" className="block text-sm font-semibold text-gray-700 mb-1.5">Correo electrónico</label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   <input
+                    id="reg-email"
                     type="email"
                     value={form.email}
                     onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
@@ -430,7 +452,7 @@ function RegisterPageContent() {
 
               {/* Teléfono */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label htmlFor="reg-phone" className="block text-sm font-semibold text-gray-700 mb-1.5">
                   Teléfono{' '}
                   <span className="font-normal text-gray-400">(opcional)</span>
                 </label>
@@ -443,6 +465,7 @@ function RegisterPageContent() {
                   <div className="relative flex-1">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                     <input
+                      id="reg-phone"
                       type="tel"
                       value={form.phone}
                       onChange={e => setForm(f => ({ ...f, phone: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
@@ -462,10 +485,11 @@ function RegisterPageContent() {
 
               {/* Contraseña */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Contraseña</label>
+                <label htmlFor="reg-password" className="block text-sm font-semibold text-gray-700 mb-1.5">Contraseña</label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   <input
+                    id="reg-password"
                     type={showPwd ? 'text' : 'password'}
                     value={form.password}
                     onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
@@ -531,7 +555,12 @@ function RegisterPageContent() {
 
               {/* Turnstile widget — invisible cuando SITE_KEY no está configurada (dev local) */}
               {SITE_KEY && !turnstileBlocked && (
-                <div ref={turnstileRef} className="flex justify-center" aria-label="Verificación anti-bot" />
+                <TurnstileWidget
+                  siteKey={SITE_KEY}
+                  onToken={token => setTurnstileToken(token)}
+                  onExpire={() => setTurnstileToken('')}
+                  onBlock={() => setTurnstileBlocked(true)}
+                />
               )}
 
               {/* Degradación elegante: script bloqueado o timeout */}

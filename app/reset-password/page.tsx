@@ -73,10 +73,11 @@ function ResetForm() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nueva contraseña</label>
+              <label htmlFor="reset-password" className="block text-sm font-semibold text-gray-700 mb-1.5">Nueva contraseña</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
+                  id="reset-password"
                   type={showPwd ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
@@ -106,10 +107,11 @@ function ResetForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Confirmar contraseña</label>
+              <label htmlFor="reset-confirm" className="block text-sm font-semibold text-gray-700 mb-1.5">Confirmar contraseña</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
+                  id="reset-confirm"
                   type={showPwd ? 'text' : 'password'}
                   value={confirm}
                   onChange={e => setConfirm(e.target.value)}

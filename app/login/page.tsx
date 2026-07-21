@@ -281,10 +281,11 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  <label htmlFor="login-totp" className="block text-sm font-semibold text-gray-700 mb-1.5">
                     {backupMode ? 'Código de respaldo' : 'Código de verificación'}
                   </label>
                   <input
+                    id="login-totp"
                     type="text"
                     value={totpCode}
                     onChange={e => {
@@ -358,12 +359,13 @@ export default function LoginPage() {
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  <label htmlFor="login-email" className="block text-sm font-semibold text-gray-700 mb-1.5">
                     Correo electrónico
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                     <input
+                      id="login-email"
                       type="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
@@ -378,7 +380,7 @@ export default function LoginPage() {
                 {/* Contraseña */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-sm font-semibold text-gray-700">Contraseña</label>
+                    <label htmlFor="login-password" className="block text-sm font-semibold text-gray-700">Contraseña</label>
                     <Link
                       href="/forgot-password"
                       className="text-xs text-indigo-500 hover:text-indigo-700 font-medium transition-colors"
@@ -389,6 +391,7 @@ export default function LoginPage() {
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                     <input
+                      id="login-password"
                       type={showPwd ? 'text' : 'password'}
                       value={password}
                       onChange={e => setPassword(e.target.value)}
