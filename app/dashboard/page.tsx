@@ -1184,12 +1184,12 @@ export default function DashboardPage() {
                 { icon: TrendingUp, label: 'Ingresos',     value: `S/ ${(earnings?.summary.totalRevenue ?? totalIncome).toLocaleString('es-PE', { minimumFractionDigits: 2 })}`, color: 'bg-green-50 text-green-600' },
                 { icon: Star,       label: 'Rating',       value: selectedBiz?.averageRating ?? '—',  color: 'bg-yellow-50 text-yellow-600' },
               ].map(({ icon: Icon, label, value, color }) => (
-                <div key={label} className="bg-white rounded-xl border border-gray-200 p-5 flex items-start gap-4">
+                <div key={label} className="bg-white rounded-xl border border-gray-200 p-5 flex items-start gap-4 min-w-0">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${color}`}>
                     <Icon className="w-5 h-5" />
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">{value}</p>
+                  <div className="min-w-0 flex-1">
+                    <p title={String(value)} className="text-lg sm:text-2xl font-bold text-gray-900 break-words leading-tight line-clamp-2">{value}</p>
                     <p className="text-sm text-gray-500">{label}</p>
                   </div>
                 </div>
