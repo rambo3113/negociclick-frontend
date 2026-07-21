@@ -1189,7 +1189,7 @@ export default function DashboardPage() {
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p title={String(value)} className="text-lg sm:text-2xl font-bold text-gray-900 break-words leading-tight line-clamp-2">{value}</p>
+                    <p className="text-base sm:text-xl lg:text-2xl font-bold text-gray-900 break-words leading-tight">{value}</p>
                     <p className="text-sm text-gray-500">{label}</p>
                   </div>
                 </div>
