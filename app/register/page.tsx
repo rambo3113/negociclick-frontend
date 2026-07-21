@@ -75,7 +75,7 @@ function TurnstileWidget({ siteKey, onToken, onExpire, onBlock }: TurnstileWidge
         onLoad={renderWidget}
         onError={() => { clearTimer(); removeWidget(); onBlock(); }}
       />
-      <div ref={containerRef} className="flex justify-center" aria-label="Verificación anti-bot" />
+      <div ref={containerRef} className="flex justify-center" />
     </>
   );
 }
@@ -372,7 +372,7 @@ function RegisterPageContent() {
                       <p className={`text-sm font-bold ${active ? (role === 'CLIENT' ? 'text-indigo-700' : 'text-emerald-700') : 'text-gray-800'}`}>
                         {c.roleLabel}
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5 leading-snug">{c.roleSub}</p>
+                      <p className="text-xs text-gray-600 mt-0.5 leading-snug">{c.roleSub}</p>
                     </div>
                   </button>
                 );
@@ -404,7 +404,7 @@ function RegisterPageContent() {
 
             <div className="flex items-center gap-3 mb-5">
               <div className="flex-1 h-px bg-gray-100" />
-              <span className="text-xs text-gray-400">o regístrate con email</span>
+              <span className="text-xs text-gray-600">o regístrate con email</span>
               <div className="flex-1 h-px bg-gray-100" />
             </div>
 
@@ -453,7 +453,7 @@ function RegisterPageContent() {
               <div>
                 <label htmlFor="reg-phone" className="block text-sm font-semibold text-gray-700 mb-1.5">
                   Teléfono{' '}
-                  <span className="font-normal text-gray-400">(opcional)</span>
+                  <span className="font-normal text-gray-600">(opcional)</span>
                 </label>
                 <div className="relative flex">
                   {/* Prefijo Perú */}
@@ -596,7 +596,7 @@ function RegisterPageContent() {
             {/* Divisor + login */}
             <div className="flex items-center gap-3 my-5">
               <div className="flex-1 h-px bg-gray-100" />
-              <span className="text-xs text-gray-400">¿ya tienes cuenta?</span>
+              <span className="text-xs text-gray-600">¿ya tienes cuenta?</span>
               <div className="flex-1 h-px bg-gray-100" />
             </div>
 
