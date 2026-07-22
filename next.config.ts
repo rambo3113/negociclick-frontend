@@ -19,7 +19,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://res.cloudinary.com https://www.google-analytics.com https://www.google.com https://www.google.com.pe",
       "font-src 'self' data:",
-      "connect-src 'self' https://api.negociclick.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://www.google.com https://api.culqi.com https://secure.culqi.com https://challenges.cloudflare.com",
+      `connect-src 'self' https://api.negociclick.com${isDev ? ' http://localhost:3001' : ''} https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://www.google.com https://api.culqi.com https://secure.culqi.com https://challenges.cloudflare.com`,
       "frame-src https://www.google.com https://maps.google.com https://checkout.culqi.com https://challenges.cloudflare.com",
       "object-src 'none'",
       "base-uri 'self'",

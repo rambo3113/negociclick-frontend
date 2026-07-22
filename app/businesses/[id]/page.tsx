@@ -10,6 +10,7 @@ import { useToast } from '@/components/Toast';
 import Link from 'next/link';
 import Image from 'next/image';
 import CulqiPaymentModal from '@/components/CulqiPaymentModal';
+import CalendarDatePicker from '@/components/CalendarDatePicker';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
 const UPLOADS_BASE = API_BASE.replace('/api', '');
@@ -151,9 +152,7 @@ export default function BusinessDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [bookingDate, setBookingDate] = useState('');
-  const [bookingHour, setBookingHour] = useState('9');
-  const [bookingMinute, setBookingMinute] = useState('00');
-  const [bookingAmPm, setBookingAmPm] = useState<'AM' | 'PM'>('AM');
+  const [bookingTime, setBookingTime] = useState('');
   const [notes, setNotes] = useState('');
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
@@ -166,7 +165,6 @@ export default function BusinessDetailPage() {
   const [hours, setHours] = useState<BusinessHour[]>([]);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null);
-  const [dateWarning, setDateWarning] = useState('');
   const [availBlocks, setAvailBlocks] = useState<{ id: string; startDate: string; endDate: string; reason?: string | null }[]>([]);
   const [carouselIdx, setCarouselIdx] = useState(0);
   // Cart (order categories)
@@ -287,11 +285,8 @@ export default function BusinessDetailPage() {
   };
 
   const buildDateISO = () => {
-    if (!bookingDate) return '';
-    let h = parseInt(bookingHour);
-    if (bookingAmPm === 'PM' && h !== 12) h += 12;
-    if (bookingAmPm === 'AM' && h === 12) h = 0;
-    return `${bookingDate}T${String(h).padStart(2, '0')}:${bookingMinute}:00-05:00`;
+    if (!bookingDate || !bookingTime) return '';
+    return `${bookingDate}T${bookingTime}:00-05:00`;
   };
   const toast = useToast();
 
@@ -314,35 +309,6 @@ export default function BusinessDetailPage() {
     .finally(() => setLoading(false));
   }, [id]);
 
-  useEffect(() => {
-    const iso = buildDateISO();
-    if (!iso || hours.length === 0) { setDateWarning(''); return; }
-    const dt = new Date(iso);
-    const dayOfWeek = dt.getDay();
-    const time = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
-    const h = hours.find(x => x.dayOfWeek === dayOfWeek);
-    if (!h || h.isClosed) {
-      setDateWarning(`El negocio no atiende los ${DAYS_ES[dayOfWeek]}.`);
-      return;
-    }
-    if (time < h.openTime || time > h.closeTime) {
-      setDateWarning(`Fuera del horario de atención (${h.openTime} – ${h.closeTime}).`);
-      return;
-    }
-    if (bookingDate && availBlocks.length > 0) {
-      const day = new Date(bookingDate + 'T00:00:00');
-      const blocked = availBlocks.find(b => {
-        const s = new Date(b.startDate); s.setHours(0,0,0,0);
-        const e = new Date(b.endDate);   e.setHours(23,59,59,999);
-        return day >= s && day <= e;
-      });
-      if (blocked) {
-        setDateWarning(blocked.reason ? `No disponible: ${blocked.reason}` : 'El negocio no está disponible en esta fecha.');
-        return;
-      }
-    }
-    setDateWarning('');
-  }, [bookingDate, bookingHour, bookingMinute, bookingAmPm, hours, availBlocks]);
 
   // Slides para el carousel: imagen de portada + fotos de galería
   // Group services by subcategory for display
@@ -368,7 +334,6 @@ export default function BusinessDetailPage() {
     const slides: string[] = [];
     // heroBannerImageUrl is always shown for any plan (incentive for FREE too)
     if (business.heroBannerImageUrl) slides.push(resolveUrl(business.heroBannerImageUrl));
-    if (business.ownerPlan === 'FREE') return slides;
     if (business.coverImage) slides.push(resolveUrl(business.coverImage));
     photos.forEach(p => {
       const url = resolveUrl(p.url);
@@ -402,8 +367,11 @@ export default function BusinessDetailPage() {
     e.preventDefault();
     if (!user) { router.push('/login'); return; }
     if (selectedServices.length === 0) return;
+    if (!bookingDate || !bookingTime) {
+      setBookingError('Elige una fecha y hora en el calendario.');
+      return;
+    }
     const dateISO = buildDateISO();
-    if (!dateISO) return;
     setBookingLoading(true);
     setBookingError('');
     try {
@@ -448,9 +416,7 @@ export default function BusinessDetailPage() {
       }
 
       setBookingDate('');
-      setBookingHour('9');
-      setBookingMinute('00');
-      setBookingAmPm('AM');
+      setBookingTime('');
       setNotes('');
       if (!business || !business.onlinePaymentEnabled) setSelectedServices([]);
     } catch (err: any) {
@@ -1436,63 +1402,22 @@ export default function BusinessDetailPage() {
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
                         <Calendar className="w-4 h-4 text-indigo-400" />
-                        Fecha
+                        Fecha y hora
                       </label>
-                      <input
-                        type="date"
-                        value={bookingDate}
-                        onChange={e => setBookingDate(e.target.value)}
-                        required
-                        min={new Date().toISOString().slice(0, 10)}
-                        className={`w-full border rounded-xl px-4 py-3 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all ${dateWarning ? 'border-amber-300' : 'border-gray-200'}`}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
-                        <Clock className="w-4 h-4 text-indigo-400" />
-                        Hora
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={bookingHour}
-                          onChange={e => setBookingHour(e.target.value)}
-                          className="flex-1 border border-gray-200 rounded-xl px-3 py-3 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                        >
-                          {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => (
-                            <option key={h} value={String(h)}>{String(h).padStart(2,'0')}</option>
-                          ))}
-                        </select>
-                        <select
-                          value={bookingMinute}
-                          onChange={e => setBookingMinute(e.target.value)}
-                          className="w-20 border border-gray-200 rounded-xl px-3 py-3 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                        >
-                          {['00','15','30','45'].map(m => (
-                            <option key={m} value={m}>{m}</option>
-                          ))}
-                        </select>
-                        <div className="flex rounded-xl overflow-hidden border border-gray-200">
-                          {(['AM','PM'] as const).map(p => (
-                            <button
-                              key={p}
-                              type="button"
-                              onClick={() => setBookingAmPm(p)}
-                              className={`px-4 py-3 text-sm font-bold transition-colors ${bookingAmPm === p ? 'bg-indigo-600 text-white' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
-                            >
-                              {p}
-                            </button>
-                          ))}
+                      {selectedServices.length === 0 ? (
+                        <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-6 text-center text-sm text-gray-400">
+                          Elige un servicio para ver la disponibilidad
                         </div>
-                      </div>
-                      {dateWarning && (
-                        <p className={`text-xs mt-1.5 flex items-center gap-1 ${dateWarning.startsWith('No disponible') ? 'text-red-600' : 'text-amber-600'}`}>
-                          {dateWarning.startsWith('No disponible')
-                            ? <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                            : <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                          }
-                          {dateWarning}
-                        </p>
+                      ) : (
+                        <CalendarDatePicker
+                          serviceId={selectedServices[0].id}
+                          businessId={business?.id || ''}
+                          isLoading={bookingLoading}
+                          onDateTimeSelect={(date, time) => {
+                            setBookingDate(date);
+                            setBookingTime(time);
+                          }}
+                        />
                       )}
                     </div>
 
@@ -1511,7 +1436,7 @@ export default function BusinessDetailPage() {
 
                     <button
                       type="submit"
-                      disabled={bookingLoading || selectedServices.length === 0 || !bookingDate}
+                      disabled={bookingLoading || selectedServices.length === 0 || !bookingDate || !bookingTime}
                       className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3.5 rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none flex items-center justify-center gap-2"
                     >
                       {bookingLoading ? (
@@ -1520,8 +1445,8 @@ export default function BusinessDetailPage() {
                         'Inicia sesión para reservar'
                       ) : selectedServices.length === 0 ? (
                         'Selecciona un servicio'
-                      ) : !bookingDate ? (
-                        'Elige una fecha'
+                      ) : !bookingDate || !bookingTime ? (
+                        'Elige fecha y hora'
                       ) : business?.onlinePaymentEnabled ? (
                         <><Calendar className="w-4 h-4" /> Reservar y pagar</>
                       ) : (
